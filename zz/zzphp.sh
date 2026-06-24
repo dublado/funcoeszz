@@ -12,9 +12,9 @@
 #
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2013-03-06
-# Versão: 2
-# Licença: GPL
-# Requisitos: zzunescape
+# Versão: 3
+# Requisitos: zzzz zztool zzunescape
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzphp ()
 {
@@ -26,13 +26,13 @@ zzphp ()
 	local end funcao
 
 	# Força atualização da listagem apagando o cache
-	if test "$1" = '--atualiza'
+	if test '--atualiza' = "$1"
 	then
 		zztool atualiza php
 		shift
 	fi
 
-	if test "$1" = '-d' -o "$1" = '--detalhe'
+	if test '-d' = "$1" -o '--detalhe' = "$1"
 	then
 		url='http://www.php.net/manual/pt_BR'
 		if test -n "$2"
@@ -41,7 +41,9 @@ zzphp ()
 			end=$(cat "$cache" | grep -h -i -- "^$funcao " | cut -f 2 -d"|")
 			# Prevenir casos como do zlib://
 			funcao=$(echo "$funcao" | sed 's|//||g')
-			test $? -eq 0 && $ZZWWWDUMP "${url}/${end}" | sed -n "/^${funcao}/,/add a note add a note/p" | sed '$d;/___*$/,$d'
+			test $? -eq 0 && zztool dump "${url}/${end}" |
+			sed -n "/^ *${funcao}/,/add a note add a note/{p; /add a note/q; }" |
+			sed '$d; /[_-][_-][_-][_-]*$/,$d; s/        */       /'
 		fi
 	else
 		# Se o cache está vazio, baixa listagem da Internet
@@ -49,7 +51,7 @@ zzphp ()
 		then
 			# Formato do arquivo:
 			# nome da função - descrição da função : link correspondente
-			$ZZWWWHTML "$url" | sed -n '/class="index"/p' |
+			zztool source "$url" | sed -n '/class="index"/p' |
 			awk -F'"' '{print substr($5,2) "|" $2}' |
 			sed 's/<[^>]*>//g' |
 			zzunescape --html > "$cache"

@@ -11,68 +11,54 @@
 #
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2011-04-22
-# Versão: 4
-# Licença: GPL
-# Requisitos: zzsemacento zzminusculas
+# Versão: 5
+# Requisitos: zzzz zztool zzsemacento zzminusculas zztrim zzutf8 zzxml
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zznome ()
 {
 	zzzz -h nome "$1" && return
 
-	local url='http://www.significado.origem.nom.br'
-	local ini='Qual a origem do nome '
-	local fim='Analise da Primeira Letra do Nome:'
+	local url='https://www.significado.origem.nom.br'
 	local nome=$(echo "$1" | zzminusculas | zzsemacento)
 
 	# Verificação dos parâmetros
 	test -n "$1" || { zztool -e uso nome; return 1; }
 
-	case "$2" in
-		origem)
-			ini='Qual a origem do nome '
-			fim='^ *$'
-		;;
-		significado)
-			ini='Qual o significado do nome '
-			fim='^ *$'
-		;;
-		letra)
-			ini='Analise da Primeira Letra do Nome:'
-			fim='Sua marca no mundo!'
-		;;
-		marca)
-			ini='Sua marca no mundo!'
-			fim='Significado - Numerologia - Expressão'
-		;;
-		numerologia)
-			ini='Significado - Numerologia - Expressão'
-			fim=' - Arcanos do Tarot'
-		;;
-		tarot)
-			ini=' - Arcanos do Tarot'
-			fim='^VEJA TAMBÉM'
-		;;
-		tudo)
-			ini='Qual a origem do nome '
-			fim='^VEJA TAMBÉM'
-		;;
-	esac
-
-	$ZZWWWDUMP "$url/nomes/?q=$nome" |
-		sed -n "
-		/$ini/,/$fim/ {
-			/$fim/d
-			/\[.*: :.*\]/d
-			/\[[0-9]\{1,\}\.jpg\]/d
-			s/^ *//g
-			s/^Qual a origem/Origem/
-			s/^Qual o significado/Significado/
-			/^Significado de / {
-				N
-				d
-			}
-			p
-		}" 2>/dev/null
-		# Escondendo erros pois a codificação do site é estranha
-		# https://github.com/aureliojargas/funcoeszz/issues/27
+	zztool source "${url}/nomes/${nome}.htm" |
+		zzutf8 |
+		awk '
+			/<h2>Significado d/{next}
+			/<style/,/style>/{next}
+			/<script/,/<\/script>/{next}
+			/class="adsbygoogle"/,/>/{next}
+			{gsub(/<h2/,"\n<h2");print}
+		' |
+		case "$2" in
+			origem     ) sed -n '/Qual a origem do nome /{s/Qual a o/O/;p;}' ;;
+			significado) sed -n '/Qual o significado do nome /{s/Qual o s/S/p;}' ;;
+			letra      ) sed -n '/ - Analise da Primeira Letra do Nome:/,/<h3>/{/<h3/d;p;}' ;;
+			marca      )
+				sed -n '
+					/ - Analise da Primeira Letra do Nome:/,/Significado - Numerologia - Expressão / {
+						/<h3>/,$!d
+						/<h3>/ i \
+Sua Marca no Mundo
+						/Significado - Numerologia - Expressão /d
+						p
+					}
+				' ;;
+			numerologia) sed -n '/Significado - Numerologia - Expressão /,/ - Arcanos do Tarot/{/ - Arcanos do Tarot/d;p;}' ;;
+			tarot      ) sed -n '/ - Arcanos do Tarot/,/<hr \/>/{/<hr \/>/d;p;}' ;;
+			tudo       ) sed -n '/Qual a origem do nome /,/VOCE SABIA QUE\.\.\./{/<hr \/>/d;/VOCE SABIA QUE\.\.\./d;p;}' ;;
+			*          ) sed -n '/Qual a origem do nome /p;/Qual o significado do nome /p' ;;
+		esac |
+		zzxml --untag |
+		tr -s '\t' '\n' |
+		awk '
+			/Qual (a origem|o significado) do nome [^:]*:/ { sub(/^Qual (a|o)/,"");sub(/ o/,"O");sub(/ s/,"S") }
+			/ - Numerologia - / || /Sua marca no mundo/ || /Analise da Primeira Letra do Nome:/ {print"";sub(/.* - /,"")}
+			/ Arcano / { gsub(/^ Arcano [0-9]/,"\n&") }
+			1' |
+		zztrim
 }

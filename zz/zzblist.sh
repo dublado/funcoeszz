@@ -5,8 +5,9 @@
 #
 # Autor: Vinícius Venâncio Leite <vv.leite (a) gmail com>
 # Desde: 2008-10-16
-# Versão: 4
-# Licença: GPL
+# Versão: 5
+# Requisitos: zzzz zztool zztestar
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzblist ()
 {
@@ -18,15 +19,23 @@ zzblist ()
 
 	test -n "$1" || { zztool -e uso blist; return 1; }
 
-	zztool -e testa_ip "$ip" || return 1
+	zztestar -e ip "$ip" || return 1
 
 	lista=$(
-		$ZZWWWDUMP "${URL}${ip}" |
+		zztool dump "${URL}${ip}" |
 		grep 'Listed' |
-		sed '/ahbl\.org/d;/=/d;/ *Not/d'
+		sed '
+			# Elimina falsos-positivos
+			/ahbl\.org/d
+			/shlink\.org/d
+
+			# Elimina lixos
+			/=/d
+			/ *Not/d
+		'
 	)
 
-	if test $(echo "$lista" | sed '/^ *$/d' | zztool num_linhas) -eq 0
+	if test "$(echo "$lista" | sed '/^ *$/d' | zztool num_linhas)" -eq 0
 	then
 		zztool eco "O IP não está em nenhuma blacklist"
 	else

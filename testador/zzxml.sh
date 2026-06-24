@@ -1,3 +1,7 @@
+# Preparando arquivo de nome incomun
+$ cat zzxml.in.xml > "-_tmp1"
+$
+
 # Erros
 
 $ zzxml --foo zzxml.in.xml
@@ -8,6 +12,17 @@ $
 # --list: Lista todas as tags XML encontradas
 
 $ zzxml --list zzxml.in.xml
+xml
+section
+title
+img
+para
+strong
+em
+escape
+$
+
+$ zzxml --list -- -_tmp1
 xml
 section
 title
@@ -29,7 +44,7 @@ Título
 </title>
 <img src="foo.png" />
 <para>
- 		Meu parágrafo, com 
+		Meu parágrafo, com 
 <strong>
 negrito
 </strong>
@@ -37,7 +52,7 @@ negrito
 <em>
 itálico
 </em>
-. 	
+.	
 </para>
 <escape>
 &quot;&amp;&apos;&lt;&gt;
@@ -49,63 +64,31 @@ $
 #----------------------------------------------------------------------
 # --indent: Formata o XML, com indent (implica --tidy)
 
-$ zzxml --indent zzxml.in.xml 
-<xml>
-	<section>
-		<title>
-			Título
-		</title>
-		<img src="foo.png" />
-		<para>
-			Meu parágrafo, com 
-			<strong>
-				negrito
-			</strong>
-			e 
-			<em>
-				itálico
-			</em>
-			. 	
-		</para>
-		<escape>
-			&quot;&amp;&apos;&lt;&gt;
-		</escape>
-	</section>
-</xml>
-$
+$ zzxml --indent zzxml.in.xml     #=> --file zzxml.out.indent.xml
 
 #----------------------------------------------------------------------
 # --indent com um XML sem quebras de linha
 
-$ zzxml --tidy zzxml.in.xml | tr -d '\n' | zzxml --indent 
-<xml>
-	<section>
-		<title>
-			Título
-		</title>
-		<img src="foo.png" />
-		<para>
-			Meu parágrafo, com 
-			<strong>
-				negrito
-			</strong>
-			e 
-			<em>
-				itálico
-			</em>
-			. 	
-		</para>
-		<escape>
-			&quot;&amp;&apos;&lt;&gt;
-		</escape>
-	</section>
-</xml>
-$
+$ zzxml --tidy zzxml.in.xml | tr -d '\n' | zzxml --indent  #=> --file zzxml.out.indent.xml
 
 #----------------------------------------------------------------------
 # --notag NOME: Remove uma tag e seu conteúdo (implica --tidy)
 
 $ zzxml --notag 'para' zzxml.in.xml
+<xml>
+<section>
+<title>
+Título
+</title>
+<img src="foo.png" />
+<escape>
+&quot;&amp;&apos;&lt;&gt;
+</escape>
+</section>
+</xml>
+$
+
+$ zzxml --notag 'para' -- -_tmp1
 <xml>
 <section>
 <title>
@@ -152,6 +135,14 @@ $
 # --notag NOME chamado múltiplas vezes
 
 $ zzxml --notag 'para' --notag 'escape' --notag 'title' zzxml.in.xml
+<xml>
+<section>
+<img src="foo.png" />
+</section>
+</xml>
+$
+
+$ zzxml --notag 'para' --notag 'escape' --notag 'title' -- -_tmp1
 <xml>
 <section>
 <img src="foo.png" />
@@ -226,7 +217,7 @@ $
 
 $ zzxml --tag 'para' zzxml.in.xml
 <para>
- 		Meu parágrafo, com 
+		Meu parágrafo, com 
 <strong>
 negrito
 </strong>
@@ -234,24 +225,24 @@ negrito
 <em>
 itálico
 </em>
-. 	
+.	
 </para>
 $
 
 $ zzxml --tag 'para' --untag zzxml.in.xml
- 		Meu parágrafo, com 
+		Meu parágrafo, com 
 negrito
  e 
 itálico
-. 	
+.	
 $
 
 $ zzxml --tag 'para' --untag --unescape zzxml.in.xml
- 		Meu parágrafo, com 
+		Meu parágrafo, com 
 negrito
  e 
 itálico
-. 	
+.	
 $
 
 #----------------------------------------------------------------------
@@ -296,12 +287,12 @@ $
 #----------------------------------------------------------------------
 $ zzxml --untag='em' --tag 'para' --notag 'em' zzxml.in.xml
 <para>
- 		Meu parágrafo, com 
+		Meu parágrafo, com 
 <strong>
 negrito
 </strong>
  e 
-. 	
+.	
 </para>
 $
 
@@ -319,6 +310,43 @@ $ zzxml --tag 'escape' zzxml.in.xml
 </escape>
 $
 
+$ echo 'Apenas <div>algumas <span><center>Tags</center> justapostas</span></div>' | zzxml --tag center
+<center>
+Tags
+</center>
+$
+
+$ echo 'Apenas <div>algumas <span><center>Tags</center> justapostas</span></div>' | zzxml --tag span
+<span>
+<center>
+Tags
+</center>
+ justapostas
+</span>
+$
+
+$ echo 'Apenas <div>algumas <span><center>Tags</center> justapostas</span></div>' | zzxml --notag center --tag div
+<div>
+algumas 
+<span>
+ justapostas
+</span>
+</div>
+$
+
+$ echo 'Apenas <div>algumas <span><center>Tags</center> justapostas</span></div>' | zzxml --indent
+Apenas 
+<div>
+	algumas 
+	<span>
+		<center>
+			Tags
+		</center>
+		justapostas
+	</span>
+</div>
+$
+
 $ zzxml --tag 'escape' --unescape zzxml.in.xml
 <escape>
 "&'<>
@@ -330,4 +358,8 @@ $
 
 $ zzxml --tag 'escape' --unescape --untag zzxml.in.xml
 "&'<>
+$
+
+# Limpeza
+$ rm -f ./-_tmp1
 $

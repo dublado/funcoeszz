@@ -2,35 +2,43 @@
 # Leitor de Feeds RSS, RDF e Atom.
 # Se informar a URL de um feed, são mostradas suas últimas notícias.
 # Se informar a URL de um site, mostra a URL do(s) Feed(s).
-# Obs.: Use a opção -n para limitar o número de resultados (Padrão é 10).
+#
+# Opções:
+#  -n para limitar o número de resultados (Padrão é 10).
+#  -u para simular navegador Mozilla/Firefox (alguns sites precisam disso).
+#
 # Para uso via pipe digite dessa forma: "zzfeed -", mesma forma que o cat.
 #
 # Uso: zzfeed [-n número] URL...
 # Ex.: zzfeed http://aurelio.net/feed/
 #      zzfeed -n 5 aurelio.net/feed/          # O http:// é opcional
 #      zzfeed aurelio.net funcoeszz.net       # Mostra URL dos feeds
+#      zzfeed -u funcoeszz.net                # UserAgent do lynx diferente
 #      cat arquivo.rss | zzfeed -             # Para uso via pipe
 #
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2011-05-03
-# Versão: 7
-# Licença: GPL
-# Requisitos: zzxml zzunescape zztrim zzutf8
+# Versão: 11
+# Requisitos: zzzz zztool zzxml zzunescape zztrim zzutf8
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzfeed ()
 {
 	zzzz -h feed "$1" && return
 
-	local url formato tag_mae tmp
+	local url formato tag_mae tmp useragent cache
 	local limite=10
 
 	# Opções de linha de comando
-	if test "$1" = '-n'
-	then
-		limite=$2
+	while test "${1#-}" != "$1"
+	do
+		case "$1" in
+		-n) limite=$2; shift ;;
+		-u) useragent='-u "Mozilla/5.0"' ;;
+		* ) break ;;
+		esac
 		shift
-		shift
-	fi
+	done
 
 	# Verificação dos parâmetros
 	test -n "$1" || { zztool -e uso feed; return 1; }
@@ -77,23 +85,23 @@ zzfeed ()
 	# </rss>
 	#-----------------------------------------------------------------
 
+	tmp=$(zztool mktemp feed)
+	cache=$(zztool mktemp feed)
+
 	# Para cada URL que o usuário informou...
 	for url
 	do
-		tmp=$(zztool mktemp feed)
-
 		# Só mostra a url se houver mais de uma
 		test $# -gt 1 && zztool eco "* $url"
 
 		# Baixa e limpa o conteúdo do feed
-		if test "$1" = "-"
+		if test '-' = "$1"
 		then
-			zztool file_stdin "$@"
+			cat - | zzutf8 | zzxml --tidy > "$tmp"
 		else
-			$ZZWWWHTML "$url"
-		fi |
-			zzutf8 |
-			zzxml --tidy > "$tmp"
+			zztool download $useragent "$url" "$cache"
+			zzutf8 "$cache" | zzxml --tidy > "$tmp"
+		fi
 
 		# Tenta identificar o formato: <feed> é Atom, <rss> é RSS
 		formato=$(grep -e '^<feed[ >]' -e '^<rss[ >]' -e '^<rdf[:>]' "$tmp")
@@ -137,9 +145,8 @@ zzfeed ()
 					s/['\"]//g"
 		fi
 
-		rm -f "$tmp"
-
 		# Linha em branco para separar resultados
 		[ $# -gt 1 ] && echo
 	done
+	rm -f "$tmp" "$cache"
 }

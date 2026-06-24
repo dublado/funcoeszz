@@ -8,7 +8,7 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2011-05-21
 # Versão: 1
-# Licença: GPL
+# Requisitos: zzzz zztool zztestar
 # Tags: data
 # ----------------------------------------------------------------------------
 zzbissexto ()
@@ -23,7 +23,7 @@ zzbissexto ()
 	# Validação
 	zztool -e testa_ano "$ano" || return 1
 
-	if zztool testa_ano_bissexto "$ano"
+	if zztestar ano_bissexto "$ano"
 	then
 		echo "$ano é bissexto"
 	else

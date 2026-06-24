@@ -3,18 +3,19 @@
 # Obs.: Cada site tem uma letra identificadora que pode ser passada como
 #       parâmetro, para informar quais sites você quer pesquisar:
 #
-#         B)r Linux            N)otícias linux
-#         V)iva o Linux        U)nder linux
+#         B) Br-Linux             C) Canal Tech
+#         D) Diolinux             L) Linux Descomplicado
+#         Z) Linuxbuzz
 #
 # Uso: zznoticiaslinux [sites]
 # Ex.: zznoticiaslinux
-#      zznoticiaslinux yn
+#      zznoticiaslinux bv
 #
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2001-12-17
-# Versão: 6
-# Licença: GPL
-# Requisitos: zzfeed
+# Versão: 11
+# Requisitos: zzzz zztool zzfeed
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zznoticiaslinux ()
 {
@@ -22,20 +23,11 @@ zznoticiaslinux ()
 
 	local url limite
 	local n=5
-	local sites='byvucin'
+	local sites='bcdlz'
 
 	limite="sed ${n}q"
 
 	test -n "$1" && sites="$1"
-
-	# Viva o Linux
-	if zztool grep_var v "$sites"
-	then
-		url='http://www.vivaolinux.com.br/index.rdf'
-		echo
-		zztool eco "* Viva o Linux ($url):"
-		zzfeed -n $n "$url"
-	fi
 
 	# Br Linux
 	if zztool grep_var b "$sites"
@@ -46,21 +38,39 @@ zznoticiaslinux ()
 		zzfeed -n $n "$url"
 	fi
 
-	# UnderLinux
-	if zztool grep_var u "$sites"
+	# Canal Tech
+	if zztool grep_var c "$sites"
 	then
-		url='https://under-linux.org/external.php?do=rss&type=newcontent&sectionid=1&days=120'
+		url='https://canaltech.com.br/rss/linux/'
 		echo
-		zztool eco "* UnderLinux ($url):"
+		zztool eco "* Canal Tech ($url):"
 		zzfeed -n $n "$url"
 	fi
 
-	# Notícias Linux
-	if zztool grep_var n "$sites"
+	# Diolinux
+	if zztool grep_var d "$sites"
 	then
-		url='http://feeds.feedburner.com/NoticiasLinux'
+		url='http://www.diolinux.com.br/feed'
 		echo
-		zztool eco "* Notícias Linux ($url):"
+		zztool eco "* Diolinux ($url):"
+		zzfeed -n $n "$url"
+	fi
+
+	# Linux Descomplicado
+	if zztool grep_var l "$sites"
+	then
+		url='https://www.linuxdescomplicado.com.br/category/noticias/feed'
+		echo
+		zztool eco "* Linux Descomplicado ($url):"
+		zzfeed -n $n "$url"
+	fi
+
+	# Linuxbuzz
+	if zztool grep_var z "$sites"
+	then
+		url='http://www.linuxbuzz.com.br/feeds/posts/default?alt=rss'
+		echo
+		zztool eco "* Linuxbuzz ($url):"
 		zzfeed -n $n "$url"
 	fi
 }

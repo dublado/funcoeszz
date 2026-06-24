@@ -7,9 +7,9 @@
 #
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2000-02-22
-# Versão: 1
-# Licença: GPL
-# Requisitos: zztrim
+# Versão: 2
+# Requisitos: zzzz zztool zztrim zzdividirtexto
+# Tags: internet, dicionário
 # ----------------------------------------------------------------------------
 zzdicjargon ()
 {
@@ -26,15 +26,15 @@ zzdicjargon ()
 	# Se o cache está vazio, baixa listagem da Internet
 	if ! test -s "$cache"
 	then
-		$ZZWWWLIST "$url/go01.html" |
+		zztool list "$url/go01.html" |
 			sed '
-				/^ *[0-9][0-9]*\. /!d
+				#/^ *[0-9][0-9]*\. /!d
 				s@.*/html/@@
 				/^[A-Z0]\//!d' > "$cache"
 	fi
 
 	achei=$(grep -i "$padrao" $cache)
-	num=$(echo "$achei" | sed -n '$=')
+	num=$(echo "$achei" | zztool num_linhas)
 
 	test -n "$achei" || return
 
@@ -47,8 +47,14 @@ zzdicjargon ()
 
 	if test $num -eq 1
 	then
-		$ZZWWWDUMP -width=72 "$url/$achei" |
-			sed '1,/_\{9\}/d;/_\{9\}/,$d;/^$/d' | zztrim -l
+		zztool dump -w 500 "$url/$achei" |
+			awk '
+				$0  ~ /^$/  { branco++; if (branco == 3) { print "----------"; branco = 0 } }
+				$0 !~ /^$/  { for (i=1;i<=branco;i++) { print "" }; print ; branco = 0 }
+			' |
+			sed '1,/[_-]\{9\}/d;/[_-]\{9\}/,$d;/^$/d' |
+			zzdividirtexto 20 |
+			zztrim -l
 		test -n "$mais" && zztool eco '\nTermos parecidos:'
 	else
 		zztool eco 'Achei mais de um! Escolha qual vai querer:'

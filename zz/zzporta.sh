@@ -10,19 +10,19 @@
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2014-11-15
 # Versão: 2
-# Licença: GPL
-# Requisitos: zzjuntalinhas
+# Requisitos: zzzz zztool zzjuntalinhas
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzporta ()
 {
 	zzzz -h porta "$1" && return
 
-	local url="http://pt.wikipedia.org/wiki/Lista_de_portas_de_protocolos"
+	local url="https://pt.wikipedia.org/wiki/Lista_de_portas_de_protocolos"
 	local port=$1
 	zztool testa_numero $port || port='.'
 
-	$ZZWWWHTML "$url" |
-	awk '/"wikitable"/,/<\/table>/ { sub (/ bgcolor.*>/,">"); print }' |
+	zztool source "$url" |
+	awk '/"wikitable"/,/<\/table>/ { sub (/ bgcolor.*>/,">");sub(/<.?tbody>/,""); print }' |
 	zzjuntalinhas -d '' -i '<tr>' -f '</tr>' |
 	awk -F '</?t[^>]+>' 'BEGIN {OFS="\t"}{ print $3, $5 }' |
 	expand -t 18 |

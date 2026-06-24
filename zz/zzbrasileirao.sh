@@ -1,13 +1,9 @@
 # ----------------------------------------------------------------------------
-# http://esporte.uol.com.br/
-# Mostra a tabela atualizada do Campeonato Brasileiro - Série A, B, C ou D.
-# Se for fornecido um numero mostra os jogos da rodada, com resultados.
-# Com argumento -l lista os todos os clubes da série A e B.
-# Se o argumento -l for seguido do nome do clube, lista todos os jogos já
-# ocorridos do clube desde o começo do ano de qualquer campeonato.
+# https://www.ogol.com.br
+# Mostra a tabela atualizada do Campeonato Brasileiro - Série A, B ou C.
 #
 # Nomenclatura:
-#   PG  - Pontos Ganhos
+#   P   - Pontos Ganhos
 #   J   - Jogos
 #   V   - Vitórias
 #   E   - Empates
@@ -15,138 +11,147 @@
 #   GP  - Gols Pró
 #   GC  - Gols Contra
 #   SG  - Saldo de Gols
-#   (%) - Aproveitamento (pontos)
 #
-# Uso: zzbrasileirao [a|b|c] [numero rodada] ou zzbrasileirao -l [nome clube]
+# Uso: zzbrasileirao [a|b|c]
 # Ex.: zzbrasileirao
 #      zzbrasileirao a
 #      zzbrasileirao b
 #      zzbrasileirao c
-#      zzbrasileirao 27
-#      zzbrasileirao b 12
-#      zzbrasileirao -l
-#      zzbrasileirao -l portuguesa
 #
 # Autor: Alexandre Brodt Fernandes, www.xalexandre.com.br
 # Desde: 2011-05-28
-# Versão: 23
-# Licença: GPL
-# Requisitos: zzecho zzpad
+# Versão: 27
+# Requisitos: zzzz zztool zzecho zzjuntalinhas zzpad zzxml
+# Tags: internet, futebol, consulta
 # ----------------------------------------------------------------------------
 zzbrasileirao ()
 {
 	zzzz -h brasileirao "$1" && return
 
-	test $(date +%Y%m%d) -lt 20150509 && { zztool erro "Brasileirão 2015 só a partir de 9 de Maio."; return 1; }
-
-	local rodada serie ano time1 time2 horario linha num_linha
-	local url="http://esporte.uol.com.br/futebol"
+	local serie pos time resto cor
+	local cache=$(zztool cache brasileirao)
+	local url='https://www.ogol.com.br/'
+	local tab="$(printf '\t')"
 
 	test $# -gt 2 && { zztool -e uso brasileirao; return 1; }
 
-	serie='a'
-	case $1 in
-	a | b | c | d) serie="$1"; shift;;
-	esac
-
-	if test -n "$1"
+	# Lista dos links para as séries
+	if ! test -e "$cache" || test $(head -n 1 "$cache") -lt $(date +%Y%m)
 	then
-		zztool testa_numero "$1" && rodada="$1" || { zztool -e uso brasileirao; return 1; }
+		date +%Y%m > "$cache"
+		zztool source "$url" |
+		zztool texto_em_iso |
+		zzxml --tidy |
+		awk '
+			/<div class="zz-menulinks-sub">/ { exit }
+			/<div class="zz-menulinks-main">/,/<div class="zz-menulinks-sub">/ {
+				if ($0 ~ /href=/) {
+					printf $0 "\t"
+					getline
+					getline
+					print
+				}
+			}' |
+		sed 's/">//;s/.*"//;s/Brasileirão/Série A/;3q' >> "$cache"
 	fi
 
-	test "$serie" = "a" && url="${url}/campeonatos/brasileirao/jogos" || url="${url}/campeonatos/serie-${serie}/jogos"
-
-	if test -n "$rodada"
+	serie='a'
+	if test -n "$1"
 	then
-		zztool testa_numero $rodada || { zztool -e uso brasileirao; return 1; }
-		$ZZWWWDUMP "$url" |
-		sed -n "/Rodada ${rodada}$/,/\(Rodada\|^ *$\)/p" |
-		sed '
-		/Rodada /d
-		s/^ *//
-		/[0-9]h[0-9]/{s/pós[ -]jogo *//; s/\(h[0-9][0-9]\).*/\1/;}
-		s/ [A-Z][A-Z][A-Z]$//
-		s/ *__*//' |
-		awk '
-			NR % 3 ~ /^[12]$/ {
-				if ($1 ~ /^[0-9-]{1,}$/) {
-					placar[NR % 3]=$1; $1=""
-				}
-				sub(/^ */,"");sub(/ *$/,"")
-				time[NR % 3]=" " $0 " "
-			}
-			NR % 3 == 0 {
-				sub(/  *$/,""); print time[1] placar[1] "|" placar[2] time[2] "|" $0
-				placar[1]="";placar[2]=""
-			}
-		' |
-		sed '/^ *$/d' |
-		while read linha
-		do
-			time1=$(  echo $linha | cut -d"|" -f 1 )
-			time2=$(  echo $linha | cut -d"|" -f 2 )
-			horario=$(echo $linha | cut -d"|" -f 3 | sed 's/^ *//' )
-			echo "$(zzpad -l 22 $time1) X $(zzpad -r 22 $time2) $horario"
-		done
+		case $1 in
+			[aA] | [bB] | [cC]) serie="$1"; shift ;;
+			*) zztool -e uso brasileirao; return 1 ;;
+		esac
+	fi
+
+	serie=$(echo $serie | tr 'abc' 'ABC')
+
+	url=${url}$(grep "${serie}$" "$cache" | cut -f 1)
+
+	zztool eco "Série $serie"
+	zztool source "$url" |
+	zztool texto_em_iso |
+	zzxml --tidy |
+	if test 'C' = "$serie"
+	then
+		sed -n '/^Final *$/,/table>/p;/^Grupo /,/table>/p;/ Fase/p;'
 	else
-		zztool eco $(echo "Série $serie" | tr 'abcd' 'ABCD')
-		if test "$serie" = "c" -o "$serie" = "d"
+		sed -n '/Classifica/,/table>/p'
+	fi |
+	zzjuntalinhas -i '<tr' -f 'tr>' -d '|' |
+	zzxml --untag |
+	if test 'C' = "$serie"
+	then
+		awk 'NR>3 && / Fase/{print ""};NR>2'
+	else
+		cat -
+	fi |
+	tr -s '|' |
+	if test 'C' = "$serie"
+	then
+		sed 's/|J|/|#|Time|J|/;s/$/|/'
+	else
+		sed 's/|P|/|#|Time|P|/'
+	fi |
+	sed 's/^|//;s/| *$//;s/a$/ /' |
+	awk 'NR==1 && /Final/ {next};1' |
+	while IFS='|' read -r pos time resto
+	do
+		unset cor
+		zztool grep_var 'Grupo' "$pos" && echo '--------------------------------'
+		test '1ª Fase' = "$pos" && serie='c'
+		if test  1 -eq "$ZZCOR" && zztool testa_numero $pos
 		then
-			$ZZWWWDUMP "$url" |
-			sed -n "/Grupo \(A\|B\)/,/Rodada 1/{s/^/_/;s/.*Rodada.*//;s/°/./;p;}" |
-			while read linha
-			do
-				if echo "$linha" | grep -E '[12]\.' >/dev/null
-				then
-					zzecho -f verde -l preto "$linha"
-				elif echo "$linha" | grep -E '[34]\.' >/dev/null && test "$serie" = "c"
-				then
-					zzecho -f verde -l preto "$linha"
-				elif echo "$linha" | grep -E '(9\.|10\.)' >/dev/null && test "$serie" = "c"
-				then
-					zzecho -f vermelho -l preto "$linha"
-				else
-					echo "$linha"
-				fi
-			done |
-			tr -d _
-			zzecho -f verde -l preto " Quartas de Final "
-			test "$serie" = "c" && zzecho -f vermelho -l preto " Rebaixamento     "
+			# Verde
+			case "$serie" in
+				A) test "$pos" -le 6 && cor='verde' ;;
+				B) test "$pos" -le 4 && cor='verde' ;;
+				c) test "$pos" -le 4 && cor='verde' ;;
+			esac
+			# Ciano
+			test "A" = "$serie" && test "$pos" -gt 6 && test "$pos" -lt 13 && cor='ciano'
+			# Vermelho
+			case "$serie" in
+				A|B) test "$pos" -ge 17 && cor='vermelho' ;;
+				c)   test "$pos" -ge 9  && cor='vermelho' ;;
+			esac
+		fi
+		if test -n "$time"
+		then
+			case "$cor" in
+				verde|ciano|vermelho) zzecho -f $cor -l preto "$(zzpad 3 $pos) $(zzpad 20 $time) $(echo "$resto" | sed "s/|/${tab}/g" | expand -t 5)";;
+				*)
+					if zztool testa_numero "$pos" || test "#" == "$pos"
+					then
+						echo "$(zzpad 3 $pos) $(zzpad 20 $time) $(echo "$resto" | sed "s/|/${tab}/g" | expand -t 5)"
+					else
+						echo "${pos}|${time}|${resto}" | sed 's/|F|G|/|/g;s/Ida|Volta|/|||&/;s/&nbsp;/ /g' | awk -F '|' '{ printf "%25s %-5s %-25s %-12s %-12s\n", $1, $2, $3, $4, $5 }'
+					fi
+				;;
+			esac
 		else
-			num_linha=0
-			$ZZWWWDUMP "$url" |
-			sed -n "/^ *Classificação *PG/,/20°/{s/^/_/;s/°/./;p}" |
-			while read linha
-			do
-				linha=$(echo "$linha" | awk '{pontos=sprintf("%3d", $NF);sub(/[0-9]+$/,pontos);print}')
-				num_linha=$((num_linha + 1))
-				case $num_linha in
-					[2-5]) zzecho -f verde -l preto "$linha";;
-					[6-9] | 1[0-3])
-						if test "$serie" = "a"
-						then
-							zzecho -f ciano -l preto "$linha"
-						else
-							echo "$linha"
-						fi
-					;;
-					1[89] | 2[01] ) zzecho -f vermelho -l preto "$linha";;
-					*) echo "$linha";;
-				esac
-			done |
-			tr -d _
+			zztool grep_var ' Fase' "$pos" && zzecho -l amarelo "$pos" && continue
+			zztool grep_var 'Final' "$pos" && zzecho -l amarelo "$pos" && continue
+			echo "$pos"
+		fi
+	done
 
-				echo
-				if test "$serie" = "a"
-				then
-					zzecho -f verde -l preto  " Libertadores  "
-					zzecho -f ciano -l preto  " Sul-Americana "
-				elif test "$serie" = "b"
-				then
-					zzecho -f verde -l preto  "   Série  A    "
-				fi
-				zzecho -f vermelho -l preto   " Rebaixamento  "
-
+	if test $ZZCOR -eq 1
+	then
+		echo
+		if test "$serie" = "A"
+		then
+			zzecho -f verde -l preto  " Libertadores  "
+			zzecho -f ciano -l preto  " Sul-Americana "
+			zzecho -f vermelho -l preto   " Rebaixamento  "
+		elif test "$serie" = "B"
+		then
+			zzecho -f verde -l preto  "   Série  A    "
+			zzecho -f vermelho -l preto   " Rebaixamento  "
+		elif test "$serie" = "C"
+		then
+			zzecho -f verde -l preto " Quartas de Final "
+			zzecho -f vermelho -l preto "   Rebaixamento   "
 		fi
 	fi
 }

@@ -7,8 +7,9 @@
 #
 # Autor: Frederico Freire Boaventura <anonymous (a) galahad com br>
 # Desde: 2007-06-25
-# Versão: 3
-# Licença: GPL
+# Versão: 4
+# Requisitos: zzzz zztool zztrim zzunescape zzxml zzjuntalinhas
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzrastreamento ()
 {
@@ -16,7 +17,7 @@ zzrastreamento ()
 
 	test -n "$1" || { zztool -e uso rastreamento; return 1; }
 
-	local url='http://websro.correios.com.br/sro_bin/txect01$.QueryList'
+	local url='https://www2.correios.com.br/sistemas/rastreamento/resultado.cfm'
 
 	# Para cada código recebido...
 	for codigo
@@ -24,13 +25,19 @@ zzrastreamento ()
 		# Só mostra o código se houver mais de um
 		test $# -gt 1 && zztool eco "**** $codigo"
 
-		$ZZWWWDUMP "$url?P_LINGUA=001&P_TIPO=001&P_COD_UNI=$codigo" |
-			sed '
-				/ Data /,/___/ !d
-				/___/d
-				s/^   //'
+		curl -s $url -d "objetos=$codigo" |
+			iconv -f iso-8859-1 -t utf-8 |
+			zzxml --tag tr |
+			zztrim |
+			zzunescape --html |
+			sed '/^ *$/d' |
+			zzjuntalinhas -i '<tr' -f '</tr>' |
+			zzxml --untag |
+			tr -s '\t' |
+			expand -t 1,13,20 |
+			zztrim
 
 		# Linha em branco para separar resultados
-		test $# -gt 1 && echo
+		test $# -gt 1 && echo || :
 	done
 }

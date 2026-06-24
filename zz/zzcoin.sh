@@ -1,90 +1,110 @@
 # ----------------------------------------------------------------------------
-# Retorna a cotação de criptomoedas em Reais (bitcoin e litecoins).
-# Opções: btc ou bitecoin / ltc ou litecoin.
-# Com as opções -a ou --all, várias criptomoedas cotadas em dólar.
-# Uso: zzcoin [btc|bitcoin|ltc|litecoin|-a|--all]
-# Ex.: zzcoin
-#      zzcoin btc
-#      zzcoin litecoin
-#      zzcoin -a
+# Retorna a cotação de criptomoedas em Reais (Bitcoin, Litecoins, etc.).
+#
+# Uso: zzcoin [criptomoeda ...]
+# Ex.: zzcoin              # Lista todas as criptomoedas disponíveis
+#      zzcoin btc          # Cotação do Bitcoin
+#      zzcoin ltc          # Cotação do Litecoin
+#      zzcoin btc ltc eth  # Cotação do Bitcoin, Litecoin e Ethereum
 #
 # Autor: Tárcio Zemel <tarciozemel (a) gmail com>
 # Desde: 2014-03-24
-# Versão: 4
-# Licença: GPL
-# Requisitos: zzminusculas zzsemacento zznumero
+# Versão: 9
+# Requisitos: zzzz zztool zzmaiusculas zznumero zzsemacento
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzcoin ()
 {
 	zzzz -h coin "$1" && return
 
 	# Variáveis gerais
-	local moeda_informada=$(echo "${1:--a}" | zzminusculas | zzsemacento)
-	local url="https://www.mercadobitcoin.com.br/api"
+	local moeda
+	local url="https://www.mercadobitcoin.com.br"
 
-	# Se não informou moeda válida, termina
-	case "$moeda_informada" in
-		btc | bitcoin  )
-			# Monta URL a ser consultada
-			url="${url}/ticker"
-			$ZZWWWHTML "$url" |
-			sed 's/.*"last"://;s/,"buy.*//' |
-			zznumero -m
-		;;
-		ltc | litecoin  )
-			# Monta URL a ser consultada
-			url="${url}/ticker_litecoin"
-			$ZZWWWHTML "$url" |
-			sed 's/.*"last"://;s/,"buy.*//' |
-			zznumero -m
-		;;
-		-a | --all )
-			url="http://coinmarketcap.com/mineable.html"
-			$ZZWWWDUMP "$url" |
-			sed -n '/#/,/Last updated/{
-				/^ *\*/d;
-				/^ *$/d;
-				s/Total Market Cap/Valor Total de Mercado/;
-				s/Last updated/Última atualização/;
-				s/ %//;
-				s/\$ //g;
-				s/  Name /Nome /;
-				s/ Market Cap/Valor Mercado/;
-				s/     Price/Preço/;
-				s/Total Supply/Total Oferta/;
-				s/ (24h)/(24h)/g;
-				s/Change(24h)/%Var(24h)/;
-				s/ Market Cap Graph (7d)//;
-				s/ Price Graph (7d)//;
-				/______/d;
-				p;
-				}' |
-			awk '
-				function espacos(  tamanho, saida, i) {
-					for(i=1;i<=tamanho;i++)
-						saida = saida " "
-					return saida
-				}
-				NR==1 {print}
-				NR>=2 {
-					if($2 == $3) {
-						atual = $2 " " $3
-						novo = $2 " " espacos(length($3))
-						sub(atual, novo)
-						print
-					}
-					else if($2 == $4 && $3 == $5) {
-						gsub(/\)/,"_"); gsub(/\(/,"_")
-						atual = $2 " " $3 " " $4 " " $5
-						novo = $2 " " $3 " " espacos(length($4)+length($5)+1)
-						sub(atual, novo)
-						gsub(/_/," "); gsub(/_/," ")
-						print
-					}
-					else { print }
-				}'
-			return
-		;;
-		* ) return 1;;
-	esac
+	# https://www.mercadobitcoin.com.br/api-doc/
+	local moedas="\
+		AAVE : Aave
+		ACMFT : Fan Token ASR
+		ACORDO01 : None
+		ASRFT : Fan Token ASR
+		ATMFT : Fan Token ATM
+		AXS : Axie Infinity Shard
+		BAL : Balancer
+		BARFT : BARFT
+		BAT : Basic Attention token
+		BCH : Bitcoin Cash
+		BTC : Bitcoin
+		CAIFT : Fan Token CAI
+		CHZ : Chiliz
+		COMP : Compound
+		CRV : Curve
+		DAI : Dai
+		DAL : Balancer
+		ENJ : Enjin
+		ETH : Ethereum
+		GALFT : Fan Token GAL
+		GRT : The Graph
+		IMOB01 : None
+		IMOB02 : None
+		JUVFT : Fan Token JUV
+		KNC : Kyber Network
+		LINK : CHAINLINK
+		LTC : Litecoin
+		MANA : Decentraland
+		MBCONS01 : Cota de Consórcio 01
+		MBCONS02 : Cota de Consórcio 02
+		MBFP01 : None
+		MBFP02 : None
+		MBFP03 : None
+		MBFP04 : None
+		MBFP05 : None
+		MBPRK01 : Precatório MB SP01
+		MBPRK02 : Precatório MB SP02
+		MBPRK03 : Precatório MB BR03
+		MBPRK04 : Precatório MB RJ04
+		MBVASCO01 : MBVASCO01
+		MCO2 : MCO2
+		MKR : Maker
+		OGFT : Fan Token ASR
+		PAXG : PAX Gold
+		PSGFT : Fan Token PSG
+		REI : Ren
+		REN : Ren
+		SNX : Synthetix
+		UMA : Uma
+		UNI : Uniswap
+		USDC : USD Coin
+		WBX : WiBX
+		XRP : XRP
+		YFI : Yearn
+		ZRX : 0x
+	"
+
+	if test $# -eq 0
+	then
+		# Lista as moedas disponíveis
+		echo "$moedas" | tr -d '\t' | grep .
+		return 0
+	fi
+
+	while test $# -gt 0
+	do
+		moeda=$(echo "$1" | zzmaiusculas | zzsemacento)
+
+		if zztool grep_var "$moeda :" "$moedas"
+		then
+			# Mostra a cotação de uma criptomoeda específica
+			printf '%s: ' $moeda
+			zztool dump "${url}/api/${moeda}/ticker/" |
+				sed 's/.*"last": *"//;s/", *"buy.*//' |
+				zznumero -m
+
+		else
+			# Se não informou moeda válida, termina
+			zztool erro "Moeda desconhecida: $1"
+			return 1
+		fi
+
+		shift
+	done
 }

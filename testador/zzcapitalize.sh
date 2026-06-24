@@ -34,25 +34,29 @@ $
 
 
 # Unicode
-$ zzcapitalize 'x©x®x²xªx½x»x→x⇒x♣x♥x♠x♦x★x'
-X©X®X²XªX½X»X→X⇒X♣X♥X♠X♦X★X
+#$ zzcapitalize 'x©x®x²xªx½x»x→x⇒x♣x♥x♠x♦x★x'
+#X©X®X²XªX½X»X→X⇒X♣X♥X♠X♦X★X
+#$
+
+$ zzcapitalize 'x©x®x²x½x»x→x⇒x♣x♥x♠x♦x★x'
+X©X®X²X½X»X→X⇒X♣X♥X♠X♦X★X
 $
 
 #######################################################################
 
 # exemplos do --help
-$ zzcapitalize			root			#→ Root
-$ zzcapitalize			'kung fu panda'		#→ Kung Fu Panda
-$ zzcapitalize	-1		'kung fu panda'		#→ Kung fu panda
-$ zzcapitalize			quero-quero		#→ Quero-Quero
-$ zzcapitalize			eu_uso_camel_case	#→ Eu_Uso_Camel_Case
-$ zzcapitalize			"i don't care"		#→ I Don'T Care
-$ zzcapitalize	-w	\'	"i don't care"		#→ I Don't Care
+$ zzcapitalize			root			#=> Root
+$ zzcapitalize			'kung fu panda'		#=> Kung Fu Panda
+$ zzcapitalize	-1		'kung fu panda'		#=> Kung fu panda
+$ zzcapitalize			quero-quero		#=> Quero-Quero
+$ zzcapitalize			eu_uso_camel_case	#=> Eu_Uso_Camel_Case
+$ zzcapitalize			"i don't care"		#=> I Don'T Care
+$ zzcapitalize	-w	\'	"i don't care"		#=> I Don't Care
 
 # Opção -w: escape do "
-$ zzcapitalize			'foo"bar'		#→ Foo"Bar
-$ zzcapitalize	-w	\"	'foo"bar'		#→ Foo"bar
+$ zzcapitalize			'foo"bar'		#=> Foo"Bar
+$ zzcapitalize	-w	\"	'foo"bar'		#=> Foo"bar
 
 # Opção -w: múltiplos caracteres
-$ zzcapitalize			'a:b c_d e-f'		#→ A:B C_D E-F
-$ zzcapitalize	-w	':_-'	'a:b c_d e-f'		#→ A:b C_d E-f
+$ zzcapitalize			'a:b c_d e-f'		#=> A:B C_D E-F
+$ zzcapitalize	-w	':_-'	'a:b c_d e-f'		#=> A:b C_d E-f

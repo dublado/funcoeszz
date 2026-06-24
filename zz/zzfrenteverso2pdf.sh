@@ -10,11 +10,12 @@
 #      zzfrenteverso2pdf -rf
 #      zzfrenteverso2pdf -rv -d "/tmp/dir_teste"
 #
-# Autor: Lauro Cavalcanti de Sa <lauro (a) ecdesa com>
+# Autor: Lauro Cavalcanti de Sa <laurocdesa (a) gmail com>
 # Desde: 2009-09-17
-# Versão: 3
-# Licença: GPLv2
-# Requisitos: pdftk
+# Versão: 4
+# Requisitos: zzzz zztool
+# Tags: arquivo, manipulação
+# Nota: requer pdftk
 # ----------------------------------------------------------------------------
 zzfrenteverso2pdf ()
 {
@@ -47,6 +48,7 @@ zzfrenteverso2pdf ()
 			-v | --verbose)
 				set -x
 				;;
+			--) shift; break ;;
 			*) { zztool -e uso frenteverso2pdf; set +x; return 1; } ;;
 		esac
 		shift
@@ -56,6 +58,12 @@ zzfrenteverso2pdf ()
 	if test ! -s "$dir/$arq_frentes" -o ! -s "$dir/$arq_versos" ; then
 		zztool erro "ERRO: Um dos arquivos $dir/$arq_frentes ou $dir/$arq_versos nao existe!"
 		return 1
+	fi
+
+	# Verifica se pdftk existe.
+	if ! [ -x "$(command -v pdftk)" ]; then
+		zztool erro "ERRO: pdftk nao esta instalado!"
+		return 2
 	fi
 
 	# Determina o numero de paginas de cada arquivo.

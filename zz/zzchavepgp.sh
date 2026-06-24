@@ -8,23 +8,25 @@
 # Autor: Rodrigo Missiaggia
 # Desde: 2001-10-01
 # Versão: 1
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzchavepgp ()
 {
 	zzzz -h chavepgp "$1" && return
 
 	local url='http://pgp.mit.edu:11371'
-	local padrao=$(echo $* | sed "$ZZSEDURL")
+	local padrao=$(echo $* | zztool sedurl)
 
 	# Verificação dos parâmetros
 	test -n "$1" || { zztool -e uso chavepgp; return 1; }
 
-	$ZZWWWDUMP "http://pgp.mit.edu:11371/pks/lookup?search=$padrao&op=index" |
+	zztool dump "http://pgp.mit.edu:11371/pks/lookup?search=$padrao&op=index" |
 		sed 1,2d |
 		sed '
 			# Remove linhas em branco
 			/^$/ d
 			# Remove linhas ____________________
-			/^ *___*$/ d'
+			/^ *___*$/ d
+			/^ *---*$/ d'
 }

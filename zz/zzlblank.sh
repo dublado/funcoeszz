@@ -16,7 +16,8 @@
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2014-05-11
 # Versão: 1
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: texto, manipulação
 # ----------------------------------------------------------------------------
 zzlblank ()
 {

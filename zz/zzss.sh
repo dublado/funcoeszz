@@ -11,8 +11,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2003-06-12
 # Versão: 1
-# Licença: GPL
-# Requisitos: zzaleatorio zztrim
+# Requisitos: zzzz zztool zzaleatorio zztrim
+# Tags: screen saver, emulação
 # ----------------------------------------------------------------------------
 zzss ()
 {
@@ -127,7 +127,7 @@ zzss ()
 		negrito=$(zzaleatorio 1)
 
 		# Podemos usar cores ou não?
-		if test "$ZZCOR" = 1
+		if test 1 = "$ZZCOR"
 		then
 			codigo_cores="$negrito;$cor_fixo$cor_muda"
 			mensagem_colorida="\033[${codigo_cores}m$mensagem\033[m"

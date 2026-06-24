@@ -2,101 +2,72 @@
 # http://www.ucicinemas.com.br
 # Exibe a programação dos cinemas UCI de sua cidade.
 # Se não for passado nenhum parâmetro, são listadas as cidades e cinemas.
-# Uso: zzcineuci [cidade | codigo_cinema]
-# Ex.: zzcineuci recife
-#      zzcineuci 14
+# Uso: zzcineuci [codigo_cinema]
+# Ex.: zzcineuci 14
 #
 # Autor: Rodrigo Pereira da Cunha <rodrigopc (a) gmail.com>
 # Desde: 2009-05-04
-# Versão: 8
-# Licença: GPL
-# Requisitos: zzminusculas zzsemacento zzxml zzcapitalize zzjuntalinhas zztrim
+# Versão: 10
+# Requisitos: zzzz zztool zzunescape zztrim zzcolunar
+# Tags: internet, cinema
 # ----------------------------------------------------------------------------
 zzcineuci ()
 {
 	zzzz -h cineuci "$1" && return
 
 	local cache=$(zztool cache cineuci)
-	local cidade codigo codigos
-	local url="http://www.ucicinemas.com.br/controles/listaFilmeCinemaHome.aspx?cinemaID="
+	local cinema codigo
+	local url="http://www.ucicinemas.com.br"
 
-	if test "$1" = '--atualiza'
+	if test '--atualiza' = "$1"
 	then
 		zztool atualiza cineuci
 		shift
 	fi
 
+	# Cidades e código cinemas e cinemas
 	if ! test -s "$cache"
 	then
-		$ZZWWWHTML "http://www.ucicinemas.com.br/localizacao+e+precos" |
-		zzxml --tidy |
-		sed -n "/\(class=.heading-bg.\|class=.btn-holder.\)/{n;p;}" |
-		sed '
-			s/.*cinema-/ /
-			s/uci/UCI/
-			s/-/) /
-			s/.>//
-			s/+/ /g
-			s/ \([1-9]\))/ 0\1)/
-			s/^\([A-Z]\)\(.*\)$/\
-\1\2:/' |
-		zzcapitalize > "$cache"
+		zztool source "${url}/cinemas" |
+		sed -n '
+			1,/<content>/d
+			/class="cinemas / { s/.*_//;s/".*//;n; p; }
+			/Avatar/ { s|.*Avatar/||; s|/Avatar\..*||; p; }
+			/strong/,/strong/ { /strong/d; p; }
+			/<\/content>/q
+		' |
+		zzunescape --html |
+		zztrim |
+		awk '{ if ($0 ~/^[0-9]+$/) {cod=sprintf("%02d",$0);getline; print " " cod " - " $0} else print "\n" $0}' |
+		tr -d '\r' |
+		zztrim -V > "$cache"
 	fi
 
-	if test $# = 0; then
-		# mostra opções
-		printf "Cidades e cinemas disponíveis\n=============================\n"
+	if test $# -eq 0
+	then
 		cat "$cache"
-		return 0
-	fi
 
-	cidade=$(echo "$*" | zzsemacento | zzminusculas | zztrim | sed 's/ 0/ /g;s/  */_/g')
-
-	codigo=$(
-		cat "$cache" |
-		while read linha
-		do
-			echo "$linha" | grep ':$' >/dev/null &&
-			echo "$linha" | zzminusculas | zzsemacento | tr ' ' '_' ||
-			echo "$linha" | sed 's/).*//'
-		done
-		)
-
-	# passou código
-	if zztool testa_numero ${cidade}; then
-		# testa se código é válido
-		cidade=$(printf "%02d" $cidade)
-		echo "$codigo" | grep "$cidade" >/dev/null && codigos="$cidade"
+	elif zztool testa_numero "$1"
+	then
+		codigo=$(sed 's/^[ 0]*//' "$cache" | grep -o --color=never "^$1 " | tr -d ' ')
+		cinema=$(sed 's/^[ 0]*//' "$cache" | grep --color=never "^$1 " | sed 's/.* - //' | zztrim)
+		if test -n "$codigo"
+		then
+			zztool eco "$cinema"
+			zztool source "${url}/api/Filmes/ListarFilmes/cinemas/${codigo}" |
+			tr '[{}],' '\n\n\n\n\n' |
+			sed -n '/"NomeDestaque":/p; /"Duracao":/,/"Censura":/p' |
+			sed 's/.*":"//;s/"//' |
+			sed "s/'//" |
+			awk 'BEGIN { printf "Filme\nDuração(min)\nGênero\nCensura\n" }; 1' |
+			zzcolunar -z 4 |
+			zztrim
+		else
+			zztool erro "Não encontrei o cinema $1"
+			return 1
+		fi
 	else
-		# passou nome da cidade
-		codigos=$(
-			echo "$codigo" |
-			sed -n "/${cidade}:/,/^$/{/:/d;p;}" |
-			zzjuntalinhas
-			)
+		zztool -e uso cineuci
+		return 1
 	fi
-
-	# se não recebeu cidade ou código válido, sai
-	test -z "$codigos" && return 1
-
-	for codigo in $codigos
-	do
-		$ZZWWWDUMP "$url$codigo" | sed '
-
-			# Faxina
-			s/^  *//
-			/^$/ d
-			/^Horários para/ d
-
-			# Destaque ao redor do nome do cinema, quebra linha após
-			1 i\
-=================================================
-			1 a\
-=================================================\
-
-
-			# Quebra linha após o horário
-			/^Sala / G
-		'
-	done
 }

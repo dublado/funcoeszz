@@ -9,8 +9,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2001-07-24
 # Versão: 1
-# Licença: GPL
-# Requisitos: zzlinha
+# Requisitos: zzzz zztool zzlinha
+# Tags: internet, música, distração
 # ----------------------------------------------------------------------------
 zzramones ()
 {
@@ -23,7 +23,7 @@ zzramones ()
 	# Se o cache está vazio, baixa listagem da Internet
 	if ! test -s "$cache"
 	then
-		$ZZWWWDUMP "$url" > "$cache"
+		zztool download "$url" "$cache"
 	fi
 
 	# Mostra uma linha qualquer (com o padrão, se informado)

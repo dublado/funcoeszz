@@ -1,6 +1,6 @@
 # Sem argumentos, mostra uma cidade alatória
 
-$ zzcidade			#→ --regex ^[A-ZÁÂÉÓ].* \([A-Z][A-Z]\)$
+$ zzcidade			#=> --regex ^[A-ZÁÂÉÓ].* \([A-Z][A-Z]\)$
 
 # Com argumento, procura pelo texto
 
@@ -17,27 +17,27 @@ Bernardino de Campos (SP)
 Campos Altos (MG)
 Campos Belos (GO)
 Campos Borges (RS)
-Campos de Júlio (MT)
-Campos do Jordão (SP)
-Campos dos Goytacazes (RJ)
 Campos Gerais (MG)
 Campos Lindos (TO)
 Campos Novos (SC)
 Campos Novos Paulista (SP)
 Campos Sales (CE)
 Campos Verdes (GO)
+Campos de Júlio (MT)
+Campos do Jordão (SP)
+Campos dos Goytacazes (RJ)
 Capitão de Campos (PI)
 Dores de Campos (MG)
 Humberto de Campos (MA)
 Lima Campos (MA)
-Mário Campos (MG)
 Martinho Campos (MG)
 Mojuí dos Campos (PA)
 Monte Alegre dos Campos (RS)
+Mário Campos (MG)
+Siqueira Campos (PR)
 São Gonçalo dos Campos (BA)
 São José dos Campos (SP)
 São Miguel dos Campos (AL)
-Siqueira Campos (PR)
 $ zzcidade '(SE)'		# mostra todas as cidades de Sergipe
 Amparo de São Francisco (SE)
 Aquidabã (SE)
@@ -91,25 +91,25 @@ Pedra Mole (SE)
 Pedrinhas (SE)
 Pinhão (SE)
 Pirambu (SE)
+Porto da Folha (SE)
 Poço Redondo (SE)
 Poço Verde (SE)
-Porto da Folha (SE)
 Propriá (SE)
-Riachão do Dantas (SE)
 Riachuelo (SE)
+Riachão do Dantas (SE)
 Ribeirópolis (SE)
 Rosário do Catete (SE)
 Salgado (SE)
-Santa Luzia do Itanhy (SE)
-Santana do São Francisco (SE)
+Santa Luzia do Itanhi (SE)
 Santa Rosa de Lima (SE)
+Santana do São Francisco (SE)
 Santo Amaro das Brotas (SE)
+Simão Dias (SE)
+Siriri (SE)
 São Cristóvão (SE)
 São Domingos (SE)
 São Francisco (SE)
 São Miguel do Aleixo (SE)
-Simão Dias (SE)
-Siriri (SE)
 Telha (SE)
 Tobias Barreto (SE)
 Tomar do Geru (SE)
@@ -129,4 +129,4 @@ $
 
 # A lista completa de cidades tem exatamente...
 
-$ zzcidade .			#→ --lines 5570
+$ zzcidade . | head -n 5550		#=> --lines 5550

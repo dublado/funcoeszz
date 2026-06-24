@@ -1,19 +1,47 @@
 # Normal
 
 $ zzdicantonimos alto
-1. pequeno, diminuto, reduzido, raso, anão, baixo.
-2. pequeno, flácido, fraco, caído.
-3. vulgar, módico, leve, insignificante, modesto, fraco.
-4. rasteiro, pior, torpe, sórdido, indigno, vil, inferior.
-5. acessível, cristalino, descomplicado, compreensível.
-6. falda, base, sopé.
+Contrário de grande:
+ baixo pequeno raso diminuto anão miúdo nanico tacanho
+
+Contrário de superior:
+ inferior último ínfero pior péssimo
+
+Contrário de eminente:
+ indigno torpe vil sórdido reles ordinário ignóbil rasteiro tratante
+
+Contrário de excessivo:
+ módico modesto reduzido razoável econômico
+
+Contrário de sério:
+ insignificante desimportante irrelevante irrisório leve desprezível
+
+Contrário de erguido:
+ caído flácido murcho mole
+
+Contrário de incompreensível:
+ acessível compreensível fácil simples inteligível descomplicado perceptível cognoscível claro cristalino
+
+Contrário de arrojado:
+ medroso covarde temeroso frouxo
+
+Contrário de agudo:
+ grave fraco abafado
+
+Contrário de afastado:
+ próximo perto aproximado junto pegado vizinho
+
+Contrário de cimo:
+ base falda sopé pé aba socairo
+
+Contrário de bêbado:
+ sóbrio abstêmico abstinente
 $
 
 # Palavra com acentos
 
 $ zzdicantonimos folgazão
-1. introvertido, sério, tristonho.
-2. rancoroso.
+ introvertido sério infeliz tristonho rancoroso
 $
 
 # Palavra não encontrada
@@ -23,4 +51,4 @@ $
 
 # Sem argumentos
 
-$ zzdicantonimos        #→ --regex ^Uso:
+$ zzdicantonimos        #=> --regex ^Uso:

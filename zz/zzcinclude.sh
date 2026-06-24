@@ -8,7 +8,9 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2000-12-15
 # Versão: 1
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: arquivo, consulta
+# Nota: requer cpp
 # ----------------------------------------------------------------------------
 zzcinclude ()
 {
@@ -23,7 +25,7 @@ zzcinclude ()
 	test "${arquivo#/}" = "$arquivo" && arquivo="/usr/include/$arquivo.h"
 
 	# Verifica se o arquivo existe
-	zztool arquivo_legivel "$arquivo" || return
+	zztool -e arquivo_legivel "$arquivo" || return
 
 	# Saída ordenada, com um Sed mágico para limpar a saída do cpp
 	cpp -E "$arquivo" |

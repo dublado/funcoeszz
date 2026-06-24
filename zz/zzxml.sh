@@ -26,21 +26,21 @@
 #
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2011-05-03
-# Versão: 13
-# Licença: GPL
-# Requisitos: zzjuntalinhas zzuniq
+# Versão: 15
+# Requisitos: zzzz zztool zzjuntalinhas zzuniq zzunescape
+# Tags: parser
 # ----------------------------------------------------------------------------
 zzxml ()
 {
 	zzzz -h xml "$1" && return
 
-	local tag notag semtag ntag sed_notag
+	local tag notag semtag ntag sed_notag sep cache_tag cache_notag
 	local tidy=0
 	local untag=0
 	local unescape=0
 	local indent=0
-	local cache_tag=$(zztool mktemp xml.tag)
-	local cache_notag=$(zztool mktemp xml.notag)
+
+	sep=$(echo '&thinsp;' | zzunescape --html)
 
 	# Opções de linha de comando
 	while test "${1#-}" != "$1"
@@ -97,10 +97,14 @@ zzxml ()
 				zzuniq
 				return
 			;;
+			--        ) shift; break;;
 			--*       ) zztool erro "Opção inválida $1"; return 1;;
 			*         ) break;;
 		esac
 	done
+
+	cache_tag=$(zztool mktemp xml.tag)
+	cache_notag=$(zztool mktemp xml.notag)
 
 	# Montando script awk para excluir tags
 	if test -n "$notag"
@@ -109,10 +113,10 @@ zzxml ()
 		for ntag in $notag
 		do
 			echo '
-				if ($0 ~ /<'$ntag'[^\/>]* >/) { notag++ }
-				if ($0 ~ /<\/'$ntag' >/) { notag--; if (notag==0) { next } }
+				if ($0 ~ /<'$ntag' [^>]*[^\/>]>/) { notag++ }
+				if ($0 ~ /<\/'$ntag'  >/) { notag--; if (notag==0) { next } }
 			' >> $cache_notag
-			sed_notag="$sed_notag /<${ntag}[^/>]*\/>/d;"
+			sed_notag="$sed_notag /<${ntag} [^>]*\/>/d;"
 		done
 		echo 'if (notag==0) { nolinha[NR] = $0 } }' >> $cache_notag
 	fi
@@ -129,10 +133,10 @@ zzxml ()
 		for ntag in $tag
 		do
 			echo '
-				if ($0 ~ /^<'$ntag'[^><]*\/>$/) { linha[NR] = $0 }
-				if ($0 ~ /^<'$ntag'[^><]*[^\/><]+>/) { tag['$ntag']++ }
+				if ($0 ~ /^<'$ntag' [^>]*\/>$/) { linha[NR] = $0 }
+				if ($0 ~ /^<'$ntag' [^>]*[^\/>]>/) { tag['$ntag']++ }
 				if (tag['$ntag']>=1) { linha[NR] = $0 }
-				if ($0 ~ /^<\/'$ntag' >/) { tag['$ntag']-- }
+				if ($0 ~ /^<\/'$ntag'  >/) { tag['$ntag']-- }
 			' >> $cache_tag
 		done
 		echo '}' >> $cache_tag
@@ -143,12 +147,12 @@ zzxml ()
 	then
 		for ntag in $semtag
 		do
-			sed_notag="$sed_notag s|<[/]\{0,1\}${ntag}[^>]*>||g;"
+			sed_notag="$sed_notag s|<[/]\{0,1\}${ntag} [^>]*>||g;"
 		done
 	fi
 
 	# Caso indent=1 mantém uma tag por linha para possibilitar indentação.
-	if test -n "$tag" 
+	if test -n "$tag"
 	then
 		if test $tidy -eq 0
 		then
@@ -157,7 +161,7 @@ zzxml ()
 			echo 'END { for (lin=1;lin<=NR;lin++) { if (lin in linha) print linha[lin] } }' >> $cache_tag
 		fi
 	fi
-	if test -n "$notag" 
+	if test -n "$notag"
 	then
 		if test $tidy -eq 0
 		then
@@ -182,7 +186,7 @@ zzxml ()
 	# esquema precisará ser revisto.
 
 	# Arquivos via STDIN ou argumentos
-	zztool file_stdin "$@" |
+	zztool file_stdin -- "$@" |
 
 	zzjuntalinhas -i "<!--" -f "-->" |
 
@@ -207,22 +211,34 @@ zzxml ()
 			#                            </b>
 			#                            </p>
 
-			zzjuntalinhas -d ' ' |
+			# Usando um tipo especial de espaço com zzjuntalinhas
+			zzjuntalinhas -d "$sep" |
 			sed '
+				:ini
+				/>'$sep'*</ {
+					s//>\
+</
+					t ini
+				}
+
 				# quebra linha na abertura da tag
 				s/</\
 </g
 				# quebra linha após fechamento da tag
-				s/>/ >\
-/g' | sed 's|/ >|/>|g' |
+				s/ *>/  >\
+/g' |
 			# Rejunta o conteúdo do <![CDATA[...]]>, que pode ter tags
 			zzjuntalinhas -i '^<!\[CDATA\[' -f ']]>$' -d '' |
 
 			# Remove linhas em branco (as que adicionamos)
-			sed '/^[[:blank:]]*$/d'
+			sed "/^[[:blank:]$sep]*$/d"
 		else
-			cat -
+			# Espaço antes do fechamento da tag (Recurso usado no script para tag não ambígua)
+			sed 's/ *>/  >/g'
 		fi |
+
+		# Corrigindo espaço de fechamento de tag única  (Recurso usado no script para tag não ambígua)
+		sed 's|/  *>|  />|g' |
 
 		# --notag
 		# É sempre usada em conjunto com --tidy (automaticamente)
@@ -250,14 +266,17 @@ zzxml ()
 			cat -
 		fi |
 
-		# --tidy (segunda parte)
-		# Eliminando o espaço adicional colocado antes do fechamento da tag.
-		if test $tidy -eq 1
-		then
-			sed 's| >|>|g'
-		else
-			cat -
-		fi |
+		# Eliminando o espaço adicional colocado antes do fechamento das tags.
+		sed 's| *>|>|g;s|  */>| />|g' |
+
+		# Removendo ou trocando um tipo de espaço especial usado com zzjuntalinhas
+		sed "
+			s/\([[:blank:]]\)$sep/\1/g
+			s/$sep\([[:blank:]]\)/\1/g
+			s/^$sep//
+			s/$sep$//
+			s/$sep/ /g
+		" |
 
 		# --indent
 		# Indentando conforme as tags que aparecem, mantendo alinhamento.
@@ -317,13 +336,7 @@ zzxml ()
 		# --unescape
 		if test $unescape -eq 1
 		then
-			sed "
-				s/&quot;/\"/g
-				s/&amp;/\&/g
-				s/&apos;/'/g
-				s/&lt;/</g
-				s/&gt;/>/g
-				"
+			zzunescape --xml
 		else
 			cat -
 		fi

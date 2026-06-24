@@ -14,8 +14,8 @@
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2014-06-15
 # Versão: 2
-# Licença: GPL
-# Requisitos: zzcolunar
+# Requisitos: zzzz zztool zzcolunar
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzdistro ()
 {
@@ -28,7 +28,7 @@ zzdistro ()
 6 26
 12 52"
 
-	test "$1" = "-l" && { lista=1; shift; }
+	test '-l' = "$1" && { lista=1; shift; }
 	case $1 in
 	1 | 3 | 6 | 12) url="${url}index.php?dataspan=$(echo "$meses" | awk '$1=='$1' {print $2}')"; shift ;;
 	*)
@@ -37,9 +37,9 @@ zzdistro ()
 
 	test -n "$1" && { zztool -e uso distro; return 1; }
 
-	$ZZWWWHTML "$url" | sed '1,/>Rank</d' |
+	zztool source "$url" | sed '1,/>Rank</d' |
 	awk -F'"' '
-		/phr1/ || /<th class="News">[0-9]{1,3}<\/th>/ {
+		/phr1/ || /<th class="News">[0-9][0-9]?[0-9]?<\/th>/ {
 			printf "%s\t", $3
 			getline
 			printf "%s\thttp://distrowatch.com/%s\n", $5, $4

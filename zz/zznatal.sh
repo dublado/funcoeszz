@@ -8,8 +8,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2004-12-23
 # Versão: 1
-# Licença: GPL
-# Requisitos: zzlinha
+# Requisitos: zzzz zztool zzlinha
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zznatal ()
 {
@@ -22,7 +22,7 @@ zznatal ()
 	# Se o cache está vazio, baixa listagem da Internet
 	if ! test -s "$cache"
 	then
-		$ZZWWWDUMP "$url" | sed '
+		zztool dump "$url" | sed '
 			1,10d
 			77,179d
 			s/^  *//

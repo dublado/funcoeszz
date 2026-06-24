@@ -17,7 +17,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2002-12-06
 # Versão: 1
-# Licença: GPL
+# Requisitos: zzzz zztool zztestar
+# Tags: seq, emulação
 # ----------------------------------------------------------------------------
 zzseq ()
 {
@@ -30,7 +31,7 @@ zzseq ()
 	local fim i
 
 	# Se tiver -f, guarda o formato e limpa os argumentos
-	if test "$1" = '-f'
+	if test '-f' = "$1"
 	then
 		formato="$2"
 		shift
@@ -50,9 +51,9 @@ zzseq ()
 	test -n "$3" && inicio="$1" passo="$2" fim="$3"
 
 	# Verificações básicas
-	zztool -e testa_numero_sinal "$inicio" || return 1
-	zztool -e testa_numero_sinal "$passo"  || return 1
-	zztool -e testa_numero_sinal "$fim"    || return 1
+	zztestar -e numero_sinal "$inicio" || return 1
+	zztestar -e numero_sinal "$passo"  || return 1
+	zztestar -e numero_sinal "$fim"    || return 1
 	if test "$passo" -eq 0
 	then
 		zztool erro "O passo não pode ser zero."

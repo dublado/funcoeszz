@@ -10,8 +10,9 @@
 #
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2001-08-28
-# Versão: 1
-# Licença: GPL
+# Versão: 2
+# Requisitos: zzzz zztool zztrim
+# Tags: arquivo, consulta
 # ----------------------------------------------------------------------------
 zzmaiores ()
 {
@@ -39,13 +40,22 @@ zzmaiores ()
 				recursivo=1
 				shift
 			;;
+			--)
+				# Fim das opções, o que vem depois é só nomes de arquivos
+				shift
+				break
+			;;
+			-*)
+				zztool erro "Opção inválida $1"
+				return 1
+			;;
 			*)
 				break
 			;;
 		esac
 	done
 
-	if test "$modo" = 'f'
+	if test 'f' = "$modo"
 	then
 		# Usuário só quer ver os arquivos e não diretórios.
 		# Como o 'du' não tem uma opção para isso, usaremos o 'find'.
@@ -67,6 +77,7 @@ zzmaiores ()
 		resultado=$(
 			find $pastas $recursivo -type f -ls |
 				tr -s ' ' |
+				zztrim -l |
 				cut -d' ' -f7,11- |
 				sed "s/ /$tab/" |
 				sort -nr |
@@ -79,7 +90,7 @@ zzmaiores ()
 		pastas="$@"
 		if test -z "$pastas" -o "$pastas" = '.'
 		then
-			zzmaiores ${recursivo:+-r} -n $limite * .[^.]*
+			zzmaiores ${recursivo:+-r} -n $limite -- * .[^.]*
 			return
 
 		fi
@@ -99,7 +110,7 @@ zzmaiores ()
 	fi
 	# TODO é K (nem é, só se usar -k -- conferir no SF) se vier do du e bytes se do find
 	echo "$resultado"
-	# | while read tamanho arquivo
+	# | while read -r tamanho arquivo
 	# do
 	# 		echo -e "$(zzbyte $tamanho)\t$arquivo"
 	# done

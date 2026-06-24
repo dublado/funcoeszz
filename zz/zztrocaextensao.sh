@@ -7,7 +7,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2000-05-15
 # Versão: 1
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: arquivo, manipulação
 # ----------------------------------------------------------------------------
 zztrocaextensao ()
 {
@@ -16,7 +17,7 @@ zztrocaextensao ()
 	local ext1 ext2 arquivo base novo nao
 
 	# Opções de linha de comando
-	if test "$1" = '-n'
+	if test '-n' = "$1"
 	then
 		nao='[-n] '
 		shift
@@ -37,7 +38,7 @@ zztrocaextensao ()
 	for arquivo
 	do
 		# O arquivo existe?
-		zztool arquivo_legivel "$arquivo" || continue
+		zztool -e arquivo_legivel "$arquivo" || continue
 
 		base="${arquivo%$ext1}"
 		novo="$base$ext2"
@@ -52,7 +53,7 @@ zztrocaextensao ()
 		if test ! -n "$nao"
 		then
 			# Não sobrescreve arquivos já existentes
-			zztool arquivo_vago "$novo" || return
+			zztool -e arquivo_vago "$novo" || return
 
 			# Vamos lá
 			mv -- "$arquivo" "$novo"

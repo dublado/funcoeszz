@@ -1,23 +1,18 @@
 # ----------------------------------------------------------------------------
 # http://www.dicio.com.br
 # Dicionário de português.
-# Definição de palavras e conjugação verbal
 # Fornecendo uma "palavra" como argumento retorna seu significado e sinônimo.
 # Se for seguida do termo "def", retorna suas definições.
-# Se for seguida do termo "conj", retorna todas as formas de conjugação.
-# Pode-se filtrar pelos modos de conjugação, fornecendo após o "conj" o modo
-# desejado:
-# ind (indicativo), sub (subjuntivo), imp (imperativo), inf (infinitivo)
 #
-# Uso: zzdicportugues palavra [def|conj [ind|sub|conj|imp|inf]]
+# Uso: zzdicportugues palavra [def]
 # Ex.: zzdicportugues bolacha
-#      zzdicportugues verbo conj sub
+#      zzdicportugues comer def
 #
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2003-02-26
-# Versão: 10
-# Licença: GPL
-# Requisitos: zzsemacento zzminusculas zztrim
+# Versão: 11
+# Requisitos: zzzz zztool zzsemacento zzminusculas zztrim
+# Tags: internet, dicionário
 # ----------------------------------------------------------------------------
 zzdicportugues ()
 {
@@ -37,7 +32,7 @@ zzdicportugues ()
 	# Verificando se a palavra confere na pesquisa
 	until test "$resultado" = "$palavra"
 	do
-		conteudo=$($ZZWWWDUMP "$url/$padrao")
+		conteudo=$(zztool dump "$url/$padrao")
 		resultado=$(
 		echo "$conteudo" |
 			sed -n "
@@ -56,71 +51,22 @@ zzdicportugues ()
 		padrao=${padrao}_${contador}
 	done
 
-	case "$2" in
-	def) ini='^Definição de '; fim=' escrit[ao] ao contrário: ' ;;
-	conj)
-		ini='^ *Infinitivo:';  fim='(Rimas com |Anagramas de )'
-		case "$3" in
-			ind)        ini='^ *Indicativo'; fim='^ *Subjuntivo' ;;
-			sub | conj) ini='^ *Subjuntivo'; fim='^ *Imperativo' ;;
-			imp)        ini='^ *Imperativo'; fim='^ *Infinitivo' ;;
-			inf)        ini='^ *Infinitivo *$' ;;
-		esac
-	;;
-	esac
+	if test 'def' = "$2"
+	then
+		ini='^Definição de '; fim=' escrit[ao] ao contrário: '
+	fi
 
-	case "$2" in
-	conj)
-		echo "$conteudo" |
-		awk '/'"$ini"'/, /'"$fim"'/ ' |
-			sed '
-				{
-				/^ *INDICATIVO *$/d;
-				/^ *Indicativo *$/d;
-				/^ *SUBJUNTIVO *$/d;
-				/^ *Subjuntivo *$/d;
-				#/^ *CONJUNTIVO *$/d
-				#/^ *Conjuntivo *$/d
-				/^ *IMPERATIVO *$/d;
-				/^ *Imperativo *$/d;
-				/^ *INFINITIVO *$/d;
-				/^ *Infinitivo *$/d;
-				/Rimas com /d;
-				/Anagramas de /d;
-				/^ *$/d;
-				s/^ *//;
-				s/^\*/\
-&/;
-				#s/ do Indicativo/&\
-#/;
-				#s/ do Subjuntivo/&\
-#/;
-				#s/ do Conjuntivo/&\
-#/;
-				#s/\* Imperativo Afirmativo/&\
-#/;
-				#s/\* Imperativo Negativo/&\
-#/;
-				#s/\* Imperativo/&\
-#/;
-				#s/\* Infinitivo Pessoal/&\
-#/;
-				s/^[a-z]/ &/g;
-				#p
-				}' |
-				zztrim
-	;;
-	*)
-		echo "$conteudo" |
-		awk '/'"$ini"'/, /'"$fim"'/ ' |
-			sed "
-				1d
+	echo "$conteudo" |
+		sed -n "
+			/$ini/,/$fim/ {
+				/$ini/d
 				/^Definição de /d
+				/^ *Exemplos com .*${palavra}$/,/^ *Outras informações sobre /d
 				/^Sinônimos de /{N;d;}
 				/Mais sinônimos /d
 				/^Antônimos de /{N;d;}
-				/Mais antônimos /d" |
-			zztrim
-	;;
-	esac
+				/Mais antônimos /d
+				p
+			}" |
+		zztrim
 }

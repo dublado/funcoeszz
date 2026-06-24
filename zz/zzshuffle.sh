@@ -7,8 +7,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2008-06-19
 # Versão: 1
-# Licença: GPL
-# Requisitos: zzaleatorio
+# Requisitos: zzzz zztool zzaleatorio
+# Tags: shuffle, emulação
 # ----------------------------------------------------------------------------
 zzshuffle ()
 {
@@ -22,7 +22,7 @@ zzshuffle ()
 		# Um número aleatório é colocado no início de cada linha,
 		# depois o sort ordena numericamente, bagunçando a ordem
 		# original. Então os números são removidos.
-		while read linha
+		while read -r linha
 		do
 			echo "$(zzaleatorio) $linha"
 		done |

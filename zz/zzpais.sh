@@ -1,5 +1,4 @@
 # ----------------------------------------------------------------------------
-# http://pt.wikipedia.org/wiki/Lista_de_pa%C3%ADses_e_capitais_em_l%C3%ADnguas_locais
 # Lista os países.
 # Opções:
 #  -a: Todos os países
@@ -16,31 +15,40 @@
 #
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2013-03-29
-# Versão: 3
-# Licença: GPL
-# Requisitos: zzlinha
+# Versão: 4
+# Requisitos: zzzz zztool zzlinha zzpad
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzpais ()
 {
 	zzzz -h pais "$1" && return
 
-	local url='http://pt.wikipedia.org/wiki/Lista_de_pa%C3%ADses_e_capitais_em_l%C3%ADnguas_locais'
+	local url='https://pt.wikipedia.org/wiki/Lista_de_países_e_capitais_em_línguas_locais'
 	local cache=$(zztool cache pais)
 	local original=0
 	local idioma=0
-	local padrao
+	local padrao linha field1 field2
 
 	# Se o cache está vazio, baixa-o da Internet
 	if ! test -s "$cache"
 	then
-		$ZZWWWHTML "$url" |
+		zztool source "$url" |
 		sed -n '/class="wikitable"/,/<\/table>/p' |
 		sed '/<th/d;s|</td>|:|g;s|</tr>|--n--|g;s|<br */*>|, |g;s/<[^>]*>//g;s/([^)]*)//g;s/\[.\]//g' |
 		awk '{
-			if ($0 == "--n--"){ print ""}
-			else {printf "%s", $0}
+			gsub(/--n--/,"\n")
+			printf "%s", $0
 		}' |
-		sed 's/, *:/:/g;s/^ *//g;s/ *, *,/,/g;s/ *$//g;s/[,:] *$//g;/Taiuã:/d;/^ *$/d' > "$cache"
+		sed '
+			s/, *:/:/g
+			s/^ *//g
+			s/ *, *,/,/g
+			s/ *$//g
+			s/[,:] *$//g
+			s/ ,/,/g
+			/Taiuã:/d
+			/^ *$/d
+		' > "$cache"
 	fi
 
 	while test "${1#-}" != "$1"
@@ -65,12 +73,12 @@ zzpais ()
 			BEGIN {
 				FS=":"
 				if (original_awk == 0) {
-					printf "%-42s %-35s\n", "País", "Capital"
-					print "------------------------------------------ ----------------------------------"
+					printf "%s|%s\n", "País", "Capital"
+					print "------------------------------------------|----------------------------------"
 				}
 			}
 			{
-			if (original_awk == 0) { printf "%-42s %-35s\n", $1, $2 }
+			if (original_awk == 0) { printf "%s|%s\n", $1, $2 }
 			else {
 				print "País     : " $3
 				print "Capital  : " $4
@@ -85,10 +93,10 @@ zzpais ()
 		awk -v idioma_awk="$idioma" -v original_awk="$original" '
 			BEGIN {FS=":"}
 			{	if (NR==1 && original_awk == 0) {
-					printf "%-42s %-35s\n", "País", "Capital"
-					print "------------------------------------------ ----------------------------------"
+					printf "%s|%s\n", "País", "Capital"
+					print "------------------------------------------|----------------------------------"
 				}
-				if (original_awk == 0) { printf "%-42s %-35s\n", $1, $2 }
+				if (original_awk == 0) { printf "%s|%s\n", $1, $2 }
 				else {
 					print "País     : " $3
 					print "Capital  : " $4
@@ -96,5 +104,20 @@ zzpais ()
 				if (idioma_awk == 1) { print "Idioma(s):", $5 }
 				if (idioma_awk == 1 || original_awk == 1) print ""
 			}'
-	fi
+	fi |
+	sed 's/ *| */|/g' |
+	while read -r linha
+	do
+		if zztool grep_var "|" "$linha"
+		then
+			field1=$(echo "$linha" | cut -f1 -d '|')
+			field2=$(echo "$linha" | cut -f2 -d '|')
+			echo "$(zzpad 42 $field1) $field2"
+		else
+			echo "$linha"
+			unset field1
+			unset field2
+		fi
+	done |
+	sed 's/  *$//; s/\([:,]\)  */\1 /g'
 }

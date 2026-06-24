@@ -5,7 +5,8 @@
 #  canais - lista os canais com seus códigos para consulta.
 #
 #  <código canal> - Programação do canal escolhido.
-#  Obs.: Se for seguido de "semana" ou "s" mostra toda programação semanal.
+#  Obs.: Seguido de "semana" ou "s": toda programação das próximas semanas.
+#        Se for seguido de uma data, mostra a programação da data informada.
 #
 #  cod <número> - mostra um resumo do programa.
 #   Obs: número obtido pelas listagens da programação do canal consultado.
@@ -14,40 +15,56 @@
 #  doc ou documentario, esportes ou futebol, filmes, infantil, variedades
 #  series ou seriados, aberta, todos ou agora (padrão).
 #
-# Uso: zztv <código canal> [semana|s]  ou  zztv cod <número>
+# Uso: zztv [<código canal> [s | <DATA>]]  ou  zztv [cod <número> | canais]
 # Ex.: zztv CUL          # Programação da TV Cultura
-#      zztv cod 3235238
+#      zztv fox 31/5     # Programação da Fox na data, se disponível
+#      zztv cod 3235238  # Detalhes do programa identificado pelo código
 #
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2002-02-19
-# Versão: 11
-# Licença: GPL
-# Requisitos: zzunescape zzdos2unix zzcolunar
+# Versão: 14
+# Requisitos: zzzz zztool zzcolunar zzdatafmt zzjuntalinhas zzpad zzsqueeze zztrim zzunescape zzxml
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zztv ()
 {
 	zzzz -h tv "$1" && return
 
 	local DATA=$(date +%d\\/%m)
-	local URL="http://meuguia.tv/programacao"
+	local URL="http://meuguia.tv"
 	local cache=$(zztool cache tv)
-	local codigo desc linhas largura
+	local codigo desc linhas
 
 	# 0 = lista canal especifico
 	# 1 = lista programas de vários canais no horário
+	# 2 = Detalhes do programa através do código
 	local flag=0
 
-	if ! test -s "$cache"
+	if ! test -s "$cache" || head -n 1 "$cache" | grep -q -v 'programacao'
 	then
-		$ZZWWWHTML ${URL}/categoria/Todos |
-		sed -n '/programacao\/canal/p;/^ *|/p' |
-		awk -F '("| [|] )' '{print $2, $6 }' |
-		sed 's/<[^>]*>//g;s|^.*/||' |
-		zzdos2unix |
-		sort >> $cache
+		# Links das categorias
+		zztool source "$URL" |
+		sed -n '/categoria/{s/" .*//;s/.*"//;p;}' > "$cache"
+
+		# Lista de canais
+		grep -F '/programacao/' "$cache" |
+		while read -r linhas
+		do
+			zztool source "${URL}${linhas}"
+		done |
+		sed -n '
+			/<a title="/{s/.*href="//;s/".*//;s|.*/||;p;}
+			/<h2>/{s/^[^>]*>//;s/<.*//;s/\(TCM - \| \(EP\)\?TV\| Channel\)//;s/Esporte Interativo /EI /;p;}
+		' |
+		awk '{printf $0 " "; getline; print}' |
+		sort |
+		zzunescape --html >> "$cache"
 	fi
-	linhas=$(echo "scale=0; ($(zztool num_linhas $cache) + 1)/ 4 " | bc)
-	largura=$(awk '{print length}' $cache | sort -n | sed -n '$p')
+
+	if test -n "$2"
+	then
+		DATA=$(zzdatafmt -f 'DD\/MM' "$2" 2>/dev/null || echo "$DATA")
+	fi
 
 	if test -n "$1" && grep -i "^$1" $cache >/dev/null 2>/dev/null
 	then
@@ -55,57 +72,99 @@ zztv ()
 		desc=$(grep -i "^$1" $cache | sed "s/^[A-Z0-9]\{3\} *//")
 
 		zztool eco $desc
-		$ZZWWWHTML "${URL}/canal/$codigo" |
-		sed -n '/<li class/{N;p;}' |
-		sed '/^[[:space:]]*$/d;/.*<\/*li/s/<[^>]*>//g' |
-		sed 's/^.*programa\///g;s/".*title="/_/g;s/">//g;s/<span .*//g;s/<[^>]*>/ /g;s/amp;//g' |
-		sed 's/^[[:space:]]*/ /g' |
-		sed '/^[[:space:]]*$/d' |
-		if test "$2" = "semana" -o "$2" = "s"
+		zztool source "${URL}/programacao/canal/$codigo" |
+		zztrim |
+		sed -n '
+			s/> *$/&|/
+			/subheader/{/<!--/d;s/<.\?li[^>]*>|\?//g;p;}
+			/<a title=/{s|.*/||;s/-.*/|/;p}
+			/lileft/p
+			/<h2>/p
+		' |
+		zzxml --untag |
+		if test 'semana' != "$2" -a 's' != "$2"
 		then
-			sed "/^ \([STQD].*[0-9][0-9]\/[0-9][0-9]\)/ { x; p ; x; s//\1/; }" |
-			sed 's/^ \(.*\)_\(.*\)\([0-9][0-9]h[0-9][0-9]\)/ \3 \2 Cod: \1/g'
+			sed -n "/, ${DATA}$/,/[^|]$/p"
 		else
-			sed -n "/, $DATA/,/^ [STQD].*[0-9][0-9]\/[0-9][0-9]/p" |
-			sed '$d;1s/^ *//;2,$s/^ \(.*\)_\(.*\)\([0-9][0-9]h[0-9][0-9]\)/ \3 \2 Cod: \1/g'
+			cat -
 		fi |
+		awk '
+			/[0-9]$/{print "";print}
+			/\|/{ printf $0;for (i=1;i<3;i++){getline; printf $0};print "" }' |
+		sed '${/[^|]$/d}' |
+		zztrim |
 		zzunescape --html |
-		awk -F " Cod: " '{ if (NF==2) { printf "%-64s Cod: %s\n", substr($1,1,63), substr($2, 1, index($2, "-")-1) } else print }'
+		awk -F '|' 'NF<=1;NF>1{printf "%-5s %-50s cod: %s\n", $2, $3,$1}'
+
 		return
 	fi
 
 	case "$1" in
-	canais) zzcolunar 4 $cache;;
-	aberta)                        URL="${URL}/categoria/Aberta"; flag=1; desc="Aberta";;
-	doc | documentario)            URL="${URL}/categoria/Documentarios"; flag=1; desc="Documentários";;
-	esporte | esportes | futebol)  URL="${URL}/categoria/Esportes"; flag=1; desc="Esportes";;
-	filmes)                        URL="${URL}/categoria/Filmes"; flag=1; desc="Filmes";;
-	infantil)                      URL="${URL}/categoria/Infantil"; flag=1; desc="Infantil";;
-	noticias)                      URL="${URL}/categoria/Noticias"; flag=1; desc="Notícias";;
-	series | seriados)             URL="${URL}/categoria/Series"; flag=1; desc="Séries";;
-	variedades)                    URL="${URL}/categoria/Variedades"; flag=1; desc="Variedades";;
-	cod)                           URL="${URL}/programa/$2"; flag=2;;
-	todos | agora | *)             URL="${URL}/categoria/Todos"; flag=1; desc="Agora";;
+	canais) grep -Fv '/programacao/' "$cache" | zzcolunar 4;;
+	aberta)                        URL="${URL}/programacao/categoria/Aberta"; flag=1; desc="Aberta";;
+	doc | documentario)            URL="${URL}/programacao/categoria/Documentarios"; flag=1; desc="Documentários";;
+	esporte | esportes | futebol)  URL="${URL}/programacao/categoria/Esportes"; flag=1; desc="Esportes";;
+	filmes)                        URL="${URL}/programacao/categoria/Filmes"; flag=1; desc="Filmes";;
+	infantil)                      URL="${URL}/programacao/categoria/Infantil"; flag=1; desc="Infantil";;
+	noticias)                      URL="${URL}/programacao/categoria/Noticias"; flag=1; desc="Notícias";;
+	series | seriados)             URL="${URL}/programacao/categoria/Series"; flag=1; desc="Séries";;
+	variedades)                    URL="${URL}/programacao/categoria/Variedades"; flag=1; desc="Variedades";;
+	cod)                           URL="${URL}/programacao/programa/$2"; flag=2;;
+	todos | agora | *)             flag=1; desc="Agora";;
 	esac
 
 	if test $flag -eq 1
 	then
 		zztool eco $desc
-		$ZZWWWHTML "$URL" | sed -n '/<li style/{N;p;}' |
-		sed '/^[[:space:]]*$/d;/.*<\/*li/s/<[^>]*>//g' |
-		sed 's/.*title="//g;s/">.*<br \/>/ | /g;s/<[^>]*>/ /g' |
-		sed 's/[[:space:]]\{1,\}/ /g' |
-		sed '/^[[:space:]]*$/d' |
+		if test "$desc" = "Agora"
+		then
+			grep -F '/programacao/' "$cache" |
+			while read -r linhas
+			do
+				zztool source "${URL}${linhas}"
+			done
+		else
+			zztool source "$URL"
+		fi |
+		zzxml --tag h2 --tag h3 |
+		if test "$desc" = "Agora"
+		then
+			awk '/\/h3>/{print;next};{printf $0 "|"}' |
+			sed -n '/<h2>/p'
+		else
+			awk '/\/h[23]>/{print;next};{printf $0 "|"}'
+		fi |
+		zzxml --untag |
 		zzunescape --html |
-		awk -F "|" '{ printf "%5s%-57s%s\n", $2, substr($1,1,56), $3 }'
-	elif test "$1" = "cod"
+		tr -s '|' |
+		if test "$desc" = "Agora"
+		then
+			awk -F '|' '{print $3 "|" $2 "|" $5}' |
+			while IFS='|' read -r hora canal programa
+			do
+				echo "$hora  $(zzpad 27 $canal) $programa"
+			done |
+			sort -n
+		else
+			awk -F '|' 'NF==3{printf (NR>1?"\n":"") $2 "\n"};NF>3{print "    " $2, $(NF-1)}'
+		fi
+	elif test 'cod' = "$1"
 	then
 		zztool eco "Código: $2"
-		$ZZWWWHTML "$URL" | sed -n '/<span class="tit">/,/Compartilhe:/p' |
-		sed 's/<span class="tit">/Título: /;s/<span class="tit_orig">/Título Original: /' |
-		sed 's/<[^>]*>/ /g;s/amp;//g;s/\&ccedil;/ç/g;s/\&atilde;/ã/g;s/.*str="//;s/";//;s/[\|] //g' |
-		sed 's/^[[:space:]]*/ /g' |
-		sed '/^[[:space:]]*$/d;/document.write/d;/str == ""/d;$d' |
+		zztool source "$URL" |
+		sed -n '/<h1 class/p;/body2/,/div>/p;/var str/p' |
+		zzjuntalinhas -i '<p' -f 'p>' -d ' ' |
+		zzjuntalinhas -i '<script' -f 'script>' -d ' ' |
+		sed '
+			/var str/{s/.*="//;s/".*//;}
+			/<!--/d
+			s_</a>_ | _g
+			s/<br *\/>/\
+/' |
+		zzxml --untag |
+		sed 's/ | $//' |
+		zztrim |
+		zzsqueeze |
 		zzunescape --html
 	fi
 }

@@ -9,7 +9,6 @@
 # Autor: Fernando Aires <fernandoaires (a) gmail com>
 # Desde: 2005-05-23
 # Versão: 1
-# Licença: GPL
 # ----------------------------------------------------------------------------
 # DESATIVADA: 2013-02-28 Parou de funcionar (issue #53)
 zzdefine ()
@@ -23,7 +22,7 @@ zzdefine ()
 	[ "${I% $1 *}" != "$I" ] && L=$1 && shift
 
 	$ZZWWWDUMP -width=78 "http://www.google.com/search?q=define:$1&hl=pt-br&ie=UTF-8&defl=$L" |
-		sed '1, /^ *Web$/ d' |
+		sed '1,/^ *Web$/ d' |
 		sed '/Encontrar definições de imho em:/,$ d' |
 		sed '/Página Inicial do Google/,$ d'
 }

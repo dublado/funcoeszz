@@ -8,7 +8,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2005-06-30
 # Versão: 2
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzlocale ()
 {
@@ -19,7 +20,7 @@ zzlocale ()
 	local padrao="$1"
 
 	# Opções de linha de comando
-	if test "$1" = '-c'
+	if test '-c' = "$1"
 	then
 		# Padrão de pesquisa válido para última palavra da linha (código)
 		padrao="$2[^ ]*$"
@@ -32,7 +33,7 @@ zzlocale ()
 	# Se o cache está vazio, baixa listagem da Internet
 	if ! test -s "$cache"
 	then
-		$ZZWWWDUMP "$url" > "$cache"
+		zztool download "$url" "$cache"
 	fi
 
 	# Faz a consulta

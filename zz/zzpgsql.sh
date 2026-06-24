@@ -10,9 +10,9 @@
 #
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2013-05-11
-# Versão: 2
-# Licença: GPL
-# Requisitos: zzunescape
+# Versão: 4
+# Requisitos: zzzz zztool zzjuntalinhas zzsqueeze zztrim zzxml
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzpgsql ()
 {
@@ -24,23 +24,38 @@ zzpgsql ()
 
 	if ! test -s "$cache"
 	then
-		$ZZWWWHTML "${url}/sql-commands.html" |
-		awk '{printf "%s",$0; if ($0 ~ /<\/dt>/) {print ""} }'|
-		zzunescape --html | sed -n '/<dt>/p' | sed 's/  */ /g' |
-		awk -F'"' '{ printf "%3s %s\n", NR, substr($3,2) ":" $2 }' |
-		sed 's/<[^>]*>//g;s/^>/ /g' > $cache
+		zztool source "${url}/sql-commands.html" |
+		awk '/<dt>/,/<\/dt>/' |
+		zzjuntalinhas -i '<dt>' -f '</dt>' |
+		zzsqueeze |
+		zztrim |
+		awk '{sub(/.*sql-/,"sql-");sub(/">/,":");print ++i ":" $0}' |
+		zzxml --untag > $cache
 	fi
 
 	if test -n "$1"
 	then
 		if zztool testa_numero $1
 		then
-			comando=$(cat $cache | sed -n "/^ *${1} /p" | cut -f2 -d":")
-			$ZZWWWDUMP "${url}/${comando}" | sed -n '/^ *__*/,/^ *__*/p' | sed '1d;$d'
+			comando=$(sed -n "/^ *${1}:/{s///;s/:.*//;p;}" $cache)
+			texto=$(sed -n "/^ *${1}:/{s/.*://;s/ . .*//;p;}" $cache)
+			zztool dump "${url}/${comando}" |
+			awk '
+				$0  ~ /^$/  { branco++; if (branco == 3) { print "----------"; branco = 0 } }
+				$0 !~ /^$/  { for (i=1;i<=branco;i++) { print "" }; print ; branco = 0 }
+			' |
+			sed -n '/^ *[_-][_-][_-][_-]*$/,/^ *[_-][_-][_-][_-]*$/p' |
+			sed "1,/${texto}/{/${texto}/!d};$d;" |
+			zztrim -V |
+			sed '
+				s/        */       /
+				/^ *[_-][_-][_-][_-]*$/d
+				/.*Prev \{1,\} Up \{1,\}Next/,$d
+			'
 		else
-			grep -i $1 $cache | cut -f1 -d":"
+			grep -i $1 $cache | awk -F: '{printf "%3s %s\n", $1, $3}'
 		fi
 	else
-		cat "$cache" | cut -f1 -d":"
+		awk -F: '{printf "%3s %s\n", $1, $3}' "$cache"
 	fi
 }

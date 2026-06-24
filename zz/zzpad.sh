@@ -17,7 +17,8 @@
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2014-05-18
 # Versão: 5
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: texto, manipulação
 # ----------------------------------------------------------------------------
 zzpad ()
 {
@@ -41,7 +42,7 @@ zzpad ()
 	done
 
 	# Tamanho da string
-	if zztool testa_numero "$1" && test $1 -gt 0
+	if zztool testa_numero "$1" && test "$1" -gt 0
 	then
 		largura="$1"
 		shift
@@ -62,10 +63,10 @@ zzpad ()
 	zztool multi_stdin "$@" |
 		zztool nl_eof |
 		case "$posicao" in
-			l) sed -e ':loop' -e "/^.\{$largura\}/ b" -e "s/^/$str_pad/" -e 'b loop';;
-			r) sed -e ':loop' -e "/^.\{$largura\}/ b" -e "s/$/$str_pad/" -e 'b loop';;
-			b) sed -e ':loop' -e "/^.\{$largura\}/ b" -e "s/$/$str_pad/" \
-			                  -e "/^.\{$largura\}/ b" -e "s/^/$str_pad/" -e 'b loop';;
+			l) sed -e ':loop'	-e "/^.\{$largura\}/ b" -e "s/^/$str_pad/" -e 'b loop';;
+			r) sed -e ':loop'	-e "/^.\{$largura\}/ b" -e "s/$/$str_pad/" -e 'b loop';;
+			b) sed -e ':loop'	-e "/^.\{$largura\}/ b" -e "s/$/$str_pad/" \
+								-e "/^.\{$largura\}/ b" -e "s/^/$str_pad/" -e 'b loop';;
 		esac
 
 	### Explicação do algoritmo sed

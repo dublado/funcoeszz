@@ -6,9 +6,9 @@
 #
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2013-03-25
-# Versão: 3
-# Licença: GPL
-# Requisitos: zzfatorar
+# Versão: 6
+# Requisitos: zzzz zztool
+# Tags: número, cálculo
 # ----------------------------------------------------------------------------
 zzdivisores ()
 {
@@ -16,40 +16,26 @@ zzdivisores ()
 
 	test -n "$1" || { zztool -e uso divisores; return 1; }
 
-	local fatores fator divisores_temp divisor divisor_atual
-	local divisores="1"
-
 	if zztool testa_numero "$1" && test $1 -ge 2
 	then
-		# Decompõe o número em fatores primos
-		fatores=$(zzfatorar --no-bc $1 | cut -f 2 -d "|" | zztool lines2list)
-
-		# Se for primo informa 1 e ele mesmo
-		zztool grep_var 'primo' "$fatores" && { echo "1 $1"; return; }
-
-		for fator in $fatores
-		do
-			# Para cada fator primo, multiplica-se pelos divisores já conhecidos
-			for divisor in $divisores
-			do
-				divisor_atual=$(($fator * $divisor))
-
-				# Apenas armazenando se divisor não existir
-				echo "$divisores_temp" | zztool list2lines | grep "^${divisor_atual}$" > /dev/null
-				if test $? -eq 1
-				then
-					divisores_temp=$( echo "$divisores_temp $divisor_atual")
-				fi
-			done
-
-			# Reabastece a variável divisores eliminando repetições
-			divisores=$(echo "$divisores $divisores_temp" | zztool list2lines | sort -n | uniq | zztool lines2list)
-		done
-
-		# Elimina-se as repetições e ordena-se os divisores encontrados
-		echo $divisores | zztool list2lines | sort -n | uniq | zztool lines2list | zztool nl_eof
+		# Código adaptado a partir da solução em:
+		# http://stackoverflow.com/questions/11699324/
+		echo "$1" |
+		awk '{
+				limits = sqrt($1)
+				for (i=1; i <= limits; i++) {
+					if ($1 % i == 0) {
+						print i
+						ind = $1 / i
+						if (i != ind ) print ind
+					}
+				}
+		}' |
+		sort -n |
+		zztool lines2list | zztool nl_eof
 	else
-		# Se não for um número válido exibe a ajuda
-		zzdivisores -h
+		# Se não for um número válido.
+		zztool erro "Apenas números naturais maiores ou iguais a 2."
+		return 1
 	fi
 }

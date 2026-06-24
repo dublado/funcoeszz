@@ -14,8 +14,9 @@
 #
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2000-02-22
-# Versão: 4
-# Licença: GPL
+# Versão: 5
+# Requisitos: zzzz zztool
+# Tags: tempo, cálculo
 # ----------------------------------------------------------------------------
 zzhora ()
 {
@@ -29,7 +30,7 @@ zzhora ()
 	local neg2=0
 
 	# Opções de linha de comando
-	if test "$1" = '-r'
+	if test '-r' = "$1"
 	then
 		relativo=1
 		shift
@@ -105,7 +106,7 @@ zzhora ()
 	hhmm2_orig="$hhmm2"
 
 	# Somente adição e subtração são permitidas
-	if test "$operacao" != '-' -a "$operacao" != '+'
+	if test '-' != "$operacao" -a '+' != "$operacao"
 	then
 		zztool erro "Operação inválida '$operacao'. Deve ser + ou -."
 		return 1
@@ -198,7 +199,7 @@ zzhora ()
 	#   10:00 (2 dias)                       23:00 (ontem)
 	#
 	# Normal:
-	#   $ zzhora 10:00 + 48:00               $ zzhora -r 12:00 - 13:00
+	#   $ zzhora 10:00 + 48:00               $ zzhora 12:00 - 13:00
 	#   58:00 (2d 10h 0m)                    -01:00 (0d 1h 0m)
 	#
 	if test $relativo -eq 1
@@ -212,7 +213,7 @@ zzhora ()
 		then
 			# Para o resultado negativo é preciso refazer algumas contas
 			minutos=$(( (60-minutos) % 60))
-			dias=$((horas/24 + (minutos>0) ))
+			dias=$((horas/24))
 			hh_dia=$(( (24 - horas_do_dia - (minutos>0)) % 24))
 			mm="$minutos"
 
@@ -227,9 +228,12 @@ zzhora ()
 				extra='amanhã'
 			;;
 			-1)
+				test ${horas_do_dia} -ne 0 -o ${minutos} -ne 0 && extra='anteontem' || extra='ontem'
+			;;
+			-0)
 				extra='ontem'
 			;;
-			0 | -0)
+			0)
 				extra='hoje'
 			;;
 			*)

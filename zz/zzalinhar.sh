@@ -19,48 +19,43 @@
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2014-05-23
 # Versão: 4
-# Licença: GPL
-# Requisitos: zzpad zztrim
+# Requisitos: zzzz zztool zzpad zztrim zzwc
+# Tags: texto, manipulação
 # ----------------------------------------------------------------------------
 zzalinhar ()
 {
 	zzzz -h alinhar "$1" && return
 
-	local cache=$(zztool mktemp alinhar)
 	local alinhamento='r'
 	local largura=0
-	local larg_efet linha
+	local larg_efet linha cache
 
 	while test "${1#-}" != "$1"
 	do
 		case "$1" in
-		-l | --left | -e | --esqueda)  alinhamento='r' ;;
-		-r | --right | -d | --direita) alinhamento='l' ;;
-		-c | --center | --centro)      alinhamento='c' ;;
-		-j | --justify | --justificar) alinhamento='j' ;;
+		-l | --left | -e | --esqueda)  alinhamento='r'; shift ;;
+		-r | --right | -d | --direita) alinhamento='l'; shift ;;
+		-c | --center | --centro)      alinhamento='c'; shift ;;
+		-j | --justify | --justificar) alinhamento='j'; shift ;;
 		-w | --width | --largura)
 			zztool testa_numero "$2" && largura="$2" || { zztool erro "Largura inválida: $2"; return 1; }
-			shift
+			shift; shift
 		;;
+		--) shift; break ;;
 		-*) zztool erro "Opção inválida: $1"; return 1 ;;
 		*) break;;
 		esac
-		shift
 	done
 
-	zztool file_stdin "$@" > $cache
+	cache=$(zztool mktemp alinhar)
 
-	larg_efet=$(
-		cat "$cache" |
-		while read linha
-		do
-			echo ${#linha}
-		done |
-		sort -nr |
-		head -1
-	)
+	zztool file_stdin -- "$@" > "$cache"
 
-	test $largura -eq 0 -a $larg_efet -gt $largura && largura=$larg_efet
+	test $(zztrim "$cache" | zzwc -l) -gt 0 || return 1
+
+	larg_efet=$(zzwc -L "$cache")
+
+	test "$largura" -eq 0 -a "${larg_efet:-0}" -gt "$largura" && largura=$larg_efet
 
 	case $alinhamento in
 	'j')
@@ -69,9 +64,9 @@ zzalinhar ()
 		sed 's/"/\\"/g' | sed "s/'/\\'/g" |
 		awk -v larg=$largura '
 			# Função para unir os campos e os separadores de campos(" ")
-			function juntar(  str_saida, j) {
+			function juntar(qtde_campos,  str_saida, j) {
 				str_saida=""
-				for ( j=1; j<=length(campos); j++ ) {
+				for ( j=1; j<=qtde_campos; j++ ) {
 					str_saida = str_saida campos[j] espacos[j]
 				}
 				sub(/ *$/, "", str_saida)
@@ -112,10 +107,10 @@ zzalinhar ()
 						if ( qtde <= 1 ) { print linha[i] }
 						else {
 							pos_atual = qtde - 1
-							saida = juntar()
+							saida = juntar(qtde)
 							while ( tam_linha(saida) < larg ) {
 								aumentar_int()
-								saida = juntar()
+								saida = juntar(qtde)
 							}
 							print saida
 						}
@@ -129,7 +124,7 @@ zzalinhar ()
 
 		cat "$cache" |
 		zztrim -H |
-		zzpad -${alinhamento} $largura
+		zzpad -${alinhamento} "$largura" 2>/dev/null
 	;;
 	esac
 

@@ -1,7 +1,7 @@
 # Erros
 
 $ zzdicportugues; echo $?
-Uso: zzdicportugues palavra [def|conj [ind|sub|conj|imp|inf]]
+Uso: zzdicportugues palavra [def]
 1
 $ zzdicportugues foobar; echo $?
 Palavra não encontrada
@@ -12,82 +12,85 @@ $
 # Uso normal - acentuação
 
 $ zzdicportugues maca
-maca,1
-f.
-Cama de lona, para descanso dos marinheiros, a bordo.
-Espécie de esquife, para transporte de enfermos.
-Padiola, com quatro braços, para transporte de mobília ou bagagens.
-* Bras. do N.
-Saco de coiro, em que se leva roupa e que se amarra á garupa, em viagem.
-(Do al.?)
-maca,2
-f.
+substantivo feminino Leito formado com duas hastes rígidas e um tecido flexível esticado ao meio e que serve para transportar feridos ou doentes: faltam macas para tantos feridos.
+Cama de lona que serve para o descanso dos marinheiros embarcados.
+Recipiente com quatro braços utilizado no transporte de mobília ou bagagens; padiola.
+Saco de couro em que se leva roupa e que se amarra à garupa em viagem.
 Ave doméstica do Peru.
+Etimologia (origem da palavra maca). Do espanhol hamaca.
+
+Maca é sinônimo de: leito, padiola
 $
 
-
 $ zzdicportugues maça
-f.
-Pau pesado, mais grosso numa extremidade que na outra.
-Espécie de pilão cylindrico, usado no serviço de calceteiro.
-Clava.
-* Prov. alent.
-Núcleo central das rodas dos carros, ligado pelos raios ás pinas.
-*
-Pau, terminado por uma cabeça ovóide ou esphérica, ás vezes recoberta de pelle, e com que se toca o bombo.
-* Ant.
-A polpa interior da noz moscada.
-* Geol.
-Formação eruptiva, desenvolvida irregularmente em qualquer direcção, antes de attingir a superfície do globo. Cf. Gonç. Guimarães, Geol., 143.
-* Prov. trasm.
-Maça da perna, a coxa.
-(Do lat. matea)
-[Dicionário Candido de Figueiredo, 1913]
+substantivo feminino Pedaço de madeira que possui uma de suas extremidades mais grossa.
+Arma composta por um cabo com uma bola de ferro pesada e presa, geralmente por uma corrente, numa de suas extremidades.
+Maço; tipo de instrumento que se assemelha ao pilão cilíndrico, usado por trabalhadores que calçam ruas com pedras.
+Peça de madeira com o formato de uma garrafa usada por malabaristas.
+Tipo de martelo que possui duas extremidades (cabeças).
+Têxtil. Instrumento utilizado para bater ou maçar o linho, geralmente tem o formato de um pilão.
+Culinária. Polpa feita com noz moscada.
+Não confundir com: massa.
+Etimologia (origem da palavra maça). Do latim matea; mattea; mateola.
 
-Sinônimo de maça: clava e tacape
+Maça é sinônimo de: clava, tacape
 $
 
 $ zzdicportugues maçã
-s.f. Fruta de cultivo mais disseminado pelo mundo.
-Maçã do rosto, região malar. As macieiras crescem tanto na Europa como na América do Sul, na África, na América do Norte, na Austrália e na Ásia. Só não suportam as regiões de calor ou frio muito intensos.
+substantivo feminino Nome do fruto produzido pela macieira: adoro comer maçã!
+[Por Extensão] O que se assemelha a uma maçã, em seu formato, aparência ou gosto; feito com esse fruto: caderno em forma de maçã; vinagre de maçã.
+Maçaneta; a parte da frente, mais alta, de uma sela.
+[Zoologia] Bezoar; tipo de pedra carnosa que, encontrada no estômago de certos animais, para algumas pessoas tem propriedade terapêutica.
+[Gramática] Diminutivo irregular: maçanilha.
+Maçã do rosto. A parte saliente do rosto que, situada abaixo dos olhos, é formada pelo osso malar.
+Etimologia (origem da palavra maçã). Do latim matiana; mattiana.
+
+Maçã é sinônimo de: maçaneta, bezoar
 $
 
 $ zzdicportugues louca
-s.f. Condição, geralmente de caráter temporário, de loucura ou falta de sanidade mental.
-(Etm. Fem. de louco)
+adjetivo Que deixou de ter razão; que se alienou; doida, maluca.
+Que se opõe à razão; absurda: teoria louca.
+Que não possui controle sobre os próprios comportamentos; descontrolada.
+Sem sensatez, discernimento; insensata.
+Completamente absorvida por uma intensa emoção: louca de saudade.
+De teor ou caráter intenso; apaixonada: paixão louca.
+De natureza anormal, fora do comum: projeto louco.
+Cheia de raiva, de fúria; furiosa: ficou louca com a traição.
+substantivo feminino Condição temporária de loucura; falta de sanidade mental.
+Etimologia (origem da palavra louca). Feminino de louco, de origem controversa.
+
+Louca é sinônimo de: doida, maluca, furiosa, louco, insensata, apaixonada
 $
 
 $ zzdicportugues louça
-s.f. Artefato de barro, porcelana etc., destinado especialmente ao serviço de mesa.
-Qualquer produto de cerâmica.
-Vasilhame: vá lavar a louça!
+substantivo feminino Produtos e/ou objetos feitos em cerâmica, barro ou porcelana para servir refeições; esses utensílios: serviu o jantar com a louça antiga.
+Produto de cerâmica esmaltada, usado de diversas maneiras, normalmente na confecção de objetos domésticos: bule de louça.
+[Informal] Os utensílios domésticos usados na cozinha: preciso lavar a louça.
+[Por Extensão] Xícara usada em bares e botequins; o café que se serve nessa xícara.
+Desuso. Penico; objeto ou recipiente usado para urinar ou defecar.
+Etimologia (origem da palavra louça). De origem questionável.
+
+Louça é sinônimo de: loiça, penico
 $
 
 $ zzdicportugues louçã
-Louçã é uma palavra derivada de loução
-Loução: adj. Pej. Garrido; elegante em excesso; que tem muita elegância.
-Louçainho; muito enfeitado; repleto de adornos.
-Figurado. Viçoso; que é bonito de se ver: cachoeira louçã.
-Gram. Feminino: louçã.
-(Etm. talvez do latim: lautianus)
+adjetivo Enfeitado; coberto por adornos, enfeites.
+[Figurado] Belo; repleto de brilho; bonito de se ver: pintura louçã.
+[Pejorativo] Janota; que se veste exageradamente elegante.
+[Gíria] Doidice; que se comporta loucamente.
+Etimologia (origem da palavra louçã). Feminino de loução.
+
+Louçã é sinônimo de: janota, belo
 $
 
 
 # Uso normal - verbos e conjugação
 
-$ zzdicportugues compilar def
+$ zzdicportugues compilar def | zzsqueeze -l
 Classe gramatical: verbo transitivo direto
 Tipo do verbo compilar: regular
-Separação das sílabas: com-pi-lar
-
-Exemplos com o verbete compilar
-
-No Japão, o mercado fechou no negativo puxado pela queda de 6,6% no índice de preços ao produtor em junho, na comparação com o mesmo período de 2008. A queda é a maior desde 1960, quando o Banco do Japão (o banco central do país) começou a compilar os dados, informa a instituição nesta
-sexta-feira. Folha de São Paulo, 10/07/2009
-A gravadora Columbia Records vai compilar todo o material produzido pelo trompetista Miles Davis durante o contrato do músico com o selo em um box de grandes proporções. Folha de São Paulo, 21/08/2009
-Os preços ao produtor no Japão caíram 6,6% em junho na comparação com o mesmo período de 2008. A queda é a maior desde 1960, quando o Banco do Japão (o banco central do país) começou a compilar os dados, informa a instituição nesta sexta-feira. Folha de São Paulo, 10/07/2009
-
-Outras informações sobre o verbete
+Separação silábica: com-pi-lar
 
 Possui 8 letras
 Possui as vogais: a i o
@@ -96,163 +99,48 @@ O verbo escrito ao contrário: ralipmoc
 $
 
 $ zzdicportugues falar
-v.reg.mult. Expressar-se através das palavras: falou mentiras; falou mentiras aos pais; quase nunca falava; não se falavam.
-v.i. Dizer a verdade: o bandido se recusava a falar.
-Ter valimento, exercer influência: a honra deve falar mais alto que o interesse.
-v.t.d. v.t.i. e v.i. Conversar; iniciar um assunto; contar alguma coisa: falavam sobre o filme; falou do filme à mãe; não quero mais falar.
-v.t.d. v.t.i. v.i. e v.pron. Figurado. Ser expressivo ou compreensível; demonstrar: o coração falava o que o pensamento negava; as ações falam sozinhas; olhos que falam.
-v.t.d. v.t.i. v.bit. e v.pron. Expressar-se numa outra língua: fala espanhol com perfeição; fala mais de um idioma; falou aos clientes em alemão; falavam-se em italiano.
-v.t.i. Criticar; falar mal de alguém ou de alguma coisa: fala da vizinha.
-v.pron. Permanecer em contato com alguém; ter uma relação: os pais não se falam.
-s.m. Ação ou efeito de falar; ato de se expressar através de palavras; conversa: não ouço o falar do professor.
-Linguística. Variante de uma língua que depende de sua região; dialeto: o falar mineiro.
-(Etm. do latim: fabulare)
+verbo regência múltipla Expressar-se através das palavras; dizer: falou mentiras; falou mentiras aos pais; quase nunca falava; não se falavam.
+Dizer a verdade; revelar: o réu se recusava a falar ao juri.
+Exercer influência: a honra deve falar mais alto que o interesse.
+Iniciar um assunto; contar alguma coisa: falavam sobre o filme.
+[Figurado] Ser expressivo ou compreensível; demonstrar: as ações falam sozinhas; olhos que falam.
+Expressar-se numa outra língua: fala espanhol com perfeição.
+verbo transitivo indireto Falar mal de; criticar: fala sempre da vizinha.
+verbo pronominal Permanecer em contato com alguém: os pais não se falam.
+substantivo masculino Ato de se expressar, de conversar: não ouço o falar do professor.
+[Linguística] Variante de uma língua que depende de sua região; dialeto: o falar mineiro.
+Etimologia (origem da palavra falar). Do latim fabulare.
 
-Sinônimo de falar: comunicar, conversar, discursar, exprimir e orar
+Falar é sinônimo de: comunicar, conversar, discursar, exprimir, criticar, conversa, dialeto, dizer, revelar
 
-Antônimo de falar: calar, emudecer e silenciar
+Falar é o contrário de: calar, emudecer, silenciar
 $
 
 $ zzdicportugues comer
-v.t. Levar à boca e engolir.
-Fig. Carcomer, roer, consumir: a ferrugem come o ferro.
-Fig. Omitir: comeu duas palavras na transcrição.
-Fig. Eliminar, ganhar (pedras em jogo de tabuleiro).
-Chul. Possuir carnalmente.
-V.i. Tomar refeição, alimentar-se habitualmente: comer em restaurante.
-Roubar.
-Comer com os olhos, encarar atentamente; desejar com avidez.
+verbo transitivo direto Ingerir algum alimento, levando à boca e engolindo: ele não gosta de comer legumes; adorava comer tortas.
+Roubar ou apropriar-se do não lhe pertence: os impostos comiam meu salário.
+Deixar de ver; ocultar ou omitir: durante a leitura, comia palavras.
+[Figurado] Gastar completamente; consumir: comeu a herança da filha.
+[Figurado] Acreditar muito em: o delegado não comeu sua história.
+[Figurado] Vulgar. Possuir sexualmente outra pessoa.
+verbo pronominal Consumir-se por: comia-se de raiva!
+verbo intransitivo Alimentar-se habitualmente: não como em restaurantes.
+Provar pela primeira vez; experimentar: comer da maçã proibida.
+[Figurado] Carcomer, roer, consumir: a ferrugem come o ferro.
+[Figurado] Eliminar ou ganhar pedras em jogo de tabuleiro.
+substantivo masculino Ação de comer; aquilo que se come ou ingere; alimento: o comer não lhe satisfaz.
+Etimologia (origem da palavra comer). Do latim comedere.
 
-Sinônimo de comer: consumir e manducar
+Comer é sinônimo de: consumir, manducar, ingerir, ocultar, alimentar, roer, carcomer, manjar, papar
 $
 
-$ zzdicportugues comer def
-Classe gramatical: substantivo masculino, verbo intransitivo, verbo pronominal, verbo transitivo direto e verbo transitivo indireto
+$ zzdicportugues comer def | sed '/Frases com o verbo comer/,/Possui/{/Possui/!d;}' | zzsqueeze -l
+Classe gramatical: substantivo masculino, verbo intransitivo, verbo pronominal e verbo transitivo direto
 Tipo do verbo comer: regular
-Separação das sílabas: co-mer
-
-Frases com o verbo comer
-
-Recolha um cão de rua, dê-lhe de comer e ele não morderá: eis a diferença fundamental entre o cão e o Homem.
--- Mark Twain
-Ele transa bem? Leva você para comer bons queijos e vinhos? É seu amigo? Então fica com ele. É o máximo que você vai conseguir de um homem.
--- Marília Gabi Gabriela
-Fonte: pensador
-
-Exemplos com o verbete comer
-
-Para comer, a casa mantém a sua linha de combinados com sushi, sashimi, entradas e pratos quentes. Folha de São Paulo, 27/06/2009
-Um exemplo é o "I Can Has Cheezburger?: A LOLcat Colleckshun" (posso comer um cheeseburguer?, uma coleção de gatos hilários; Gotham Books, US$ 10), que reúne posts do blog que o originou (icanhascheezburger.com), em que fotos de gatos em situações engraçadas e inusitadas ganham legendas
-nonsense. Folha de São Paulo, 27/06/2009
-FOLHA - Arrependeu-se da cirurgia? SCARPA - Por enquanto, estou arrependido. Mas é algo para o resto da vida. Minha irmã Fátima fez e perdeu 58 kg, mas deixaram o estômago dela menor, só pode comer 25 mililitros, senão vomita. O meu tem 500 mililitros. Dá para comer uma picanha inteira.
-Folha de São Paulo, 27/06/2009
-
-Outras informações sobre o verbete
+Separação silábica: co-mer
 
 Possui 5 letras
 Possui as vogais: e o
 Possui as consoantes: c m r
 O verbo escrito ao contrário: remoc
-$
-
-$ zzdicportugues comer conj inf
-* Infinitivo Pessoal
-por comer eu
-por comeres tu
-por comer ele
-por comermos nós
-por comerdes vós
-por comerem eles
-$
-
-$ zzdicportugues comer conj imp
-* Imperativo Afirmativo
-come tu
-coma ele
-comamos nós
-comei vós
-comam eles
-
-* Imperativo Negativo
-não comas tu
-não coma ele
-não comamos nós
-não comais vós
-não comam eles
-$
-
-$ zzdicportugues comer conj sub
-* Presente do Subjuntivo
-que eu coma
-que tu comas
-que ele coma
-que nós comamos
-que vós comais
-que eles comam
-
-* Pretérito Imperfeito do Subjuntivo
-se eu comesse
-se tu comesses
-se ele comesse
-se nós comêssemos
-se vós comêsseis
-se eles comessem
-
-* Futuro do Subjuntivo
-quando eu comer
-quando tu comeres
-quando ele comer
-quando nós comermos
-quando vós comerdes
-quando eles comerem
-$
-
-$ zzdicportugues comer conj ind
-* Presente do Indicativo
-eu como
-tu comes
-ele come
-nós comemos
-vós comeis
-eles comem
-
-* Pretérito Imperfeito do Indicativo
-eu comia
-tu comias
-ele comia
-nós comíamos
-vós comíeis
-eles comiam
-
-* Pretérito Perfeito do Indicativo
-eu comi
-tu comeste
-ele comeu
-nós comemos
-vós comestes
-eles comeram
-
-* Mais-que-perfeito do Indicativo
-eu comera
-tu comeras
-ele comera
-nós comêramos
-vós comêreis
-eles comeram
-
-* Futuro do Pretérito do Indicativo
-eu comeria
-tu comerias
-ele comeria
-nós comeríamos
-vós comeríeis
-eles comeriam
-
-* Futuro do Presente do Indicativo
-eu comerei
-tu comerás
-ele comerá
-nós comeremos
-vós comereis
-eles comerão
 $

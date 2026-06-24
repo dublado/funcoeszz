@@ -11,8 +11,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2004-12-23
 # Versão: 2
-# Licença: GPL
-# Requisitos: zzaleatorio
+# Requisitos: zzzz zztool zzaleatorio zztestar
+# Tags: arquivo, RANDOM, sed, emulação
 # ----------------------------------------------------------------------------
 zzlinha ()
 {
@@ -21,7 +21,7 @@ zzlinha ()
 	local arquivo n padrao resultado num_linhas
 
 	# Opções de linha de comando
-	if test "$1" = '-t'
+	if test '-t' = "$1"
 	then
 		padrao="$2"
 		shift
@@ -29,7 +29,7 @@ zzlinha ()
 	fi
 
 	# Talvez o $1 é o número da linha desejada?
-	if zztool testa_numero_sinal "$1"
+	if zztestar numero_sinal "$1"
 	then
 		n="$1"
 		shift
@@ -38,7 +38,7 @@ zzlinha ()
 	# Se informado um ou mais arquivos, eles existem?
 	for arquivo in "$@"
 	do
-		zztool arquivo_legivel "$arquivo" || return 1
+		zztool -e arquivo_legivel "$arquivo" || return 1
 	done
 
 	if test -n "$n"
@@ -62,7 +62,7 @@ zzlinha ()
 		# aleatória deste resultado.
 		# Nota: Arquivos via STDIN ou argumentos
 		resultado=$(zztool file_stdin "$@" | grep -h -i -- "${padrao:-.}")
-		num_linhas=$(echo "$resultado" | sed -n '$=')
+		num_linhas=$(echo "$resultado" | zztool num_linhas)
 		n=$(zzaleatorio 1 $num_linhas)
 		echo "$resultado" | sed -n "${n}p"
 	fi

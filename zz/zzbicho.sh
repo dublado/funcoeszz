@@ -12,15 +12,15 @@
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2012-08-27
 # Versão: 4
-# Licença: GPL
-# Requisitos: zztrim
+# Requisitos: zzzz zztool zztrim
+# Tags: jogo, consulta
 # ----------------------------------------------------------------------------
 zzbicho ()
 {
 	zzzz -h bicho "$1" && return
 
 	# Verificação dos parâmetros: se há $1, ele deve ser 'g' ou um número
-	if test $# -gt 0 && test "$1" != 'g' && ! zztool testa_numero "$1"
+	if test $# -gt 0 && test 'g' != "$1" && ! zztool testa_numero "$1"
 	then
 		zztool -e uso bicho
 		return 1

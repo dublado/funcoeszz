@@ -6,22 +6,47 @@
 # Procura por espaços em branco em lugares errados.
 
 
-cd $(dirname "$0") || exit 1
+cd "$(dirname "$0")/.." || exit 1  # go to repo root
 
-cd ../zz
+exit_code=0
 
-funcoeszz tool eco "Linha que inicia com um espaço"
-grep '^ ' * |
-	grep -v -E '^zz(google|palpite|loteria2)'  # caso válido, sed multilinha
+eco() {
+    echo -e "\033[36;1m$*\033[m"
+}
 
-funcoeszz tool eco "Linha com Tab e espaço misturados"
-grep '	 ' * |
+check() {  # $1=name, $2=wrong
+	if test -n "$2"
+	then
+		eco ----------------------------------------------------------------
+		eco "* $1"
+		echo "$2"
+		exit_code=1
+	fi
+}
+
+check "Linha que inicia com um espaço" "$(
+	grep -r '^ ' zz/ |
+	grep -v '^zz/zzpalpite.sh: /g'  # caso válido, sed multilinha
+)"
+
+check "Linha com Tab e espaço misturados" "$(
+	grep -r '	 ' zz/ |
 	# [\t ]: Dentro de colchetes, é regex
-	fgrep -v '[	 ]'
+	grep -Fv '[	 ]' |
+	# Em sed para substituição
+	grep -Fv "sed 's" |
+	# Falso-positivo: regex com espaços e tabs
+	grep -v '^zz/zzloteria.sh:.*s/'
+)"
 
-funcoeszz tool eco "Linha com Tabs ou espaços inúteis no final"
-grep '[^ 	][ 	]\{1,\}$' * |
-	grep -v ^zzxml  # exceção, usado num comentário
+check "Linha com Tabs ou espaços inúteis no final" "$(
+	grep -r -E '[^ 	][ 	]+$' zz/ |
+	grep -v '^zz/zzxml.sh:.*Foo $'  # exceção, usado num comentário
+)"
 
-funcoeszz tool eco "Linhas vazias, mas com brancos"
-egrep '^[	 ]+$' *
+check "Linhas vazias, mas com brancos" "$(
+	grep -r -E '^[	 ]+$' zz/
+)"
+
+
+exit $exit_code

@@ -10,8 +10,8 @@
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2013-03-22
 # Versão: 7
-# Licença: GPL
-# Requisitos: zzcapitalize zzwikipedia zzxml zzpad
+# Requisitos: zzzz zztool zzcapitalize zzwikipedia zzxml zzpad
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzquimica ()
 {
@@ -24,7 +24,7 @@ zzquimica ()
 	# Se o cache está vazio, baixa listagem da Internet
 	if ! test -s "$cache"
 	then
-		$ZZWWWHTML "http://www.tabelaperiodicacompleta.com/" |
+		zztool source "http://www.tabelaperiodicacompleta.com/" |
 		awk '/class="elemento/,/<\/td>/{print}'|
 		zzxml --untag=br | zzxml --tidy |
 		sed '/id="57-71"/,/<\/td>/d;/id="89-103"/,/<\/td>/d' |
@@ -57,8 +57,15 @@ zzquimica ()
 			/^<small/   { getline info["orbital"]; gsub(/ /, "-", info["orbital"]) }
 			/^<\/td>/ { print info["numero"], info["nome"], info["simbolo"], info["massa"], info["orbital"], info["familia"] " (" info["estado"] ")" }
 		' |
+		# Correção para elmentos novos descobertos e recentemente reclassificados
+		sed '
+			s/Ununtrio/Nihonium/; s/Uut/Nh/
+			s/Ununpentio/Moscovium/; s/Uup/Mc/
+			s/Ununséptio/Tennessine/; s/Uus/Ts/
+			s/Ununóctio/Oganesson/; s/Uuo/Og/
+			' |
 		sort -n |
-		while IFS=':' read numero nome simbolo massa orbital familia
+		while IFS=':' read -r numero nome simbolo massa orbital familia
 		do
 			echo "$(zzpad 4 $numero) $(zzpad 13 $nome) $(zzpad 7 $simbolo) $(zzpad 12 $massa) $(zzpad 18 $orbital) $familia"
 		done > "$cache"
@@ -78,7 +85,7 @@ zzquimica ()
 		# Se encontrado, pesquisa-o na wikipedia
 		if test ${#elemento} -gt 0
 		then
-			test "$elemento" = "Rádio" -o "$elemento" = "Índio" && elemento="${elemento}_(elemento_químico)"
+			test "$elemento" = 'Rádio' -o "$elemento" = 'Índio' && elemento="${elemento}_(elemento_químico)"
 			zzwikipedia "$elemento"
 		else
 			zztool -e uso quimica

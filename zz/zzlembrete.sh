@@ -9,14 +9,15 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2008-10-22
 # Versão: 3
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: arquivo, utilitário
 # ----------------------------------------------------------------------------
 zzlembrete ()
 {
 	zzzz -h lembrete "$1" && return
 
 	local numero tmp
-	local arquivo="$HOME/.zzlembrete"
+	local arquivo="${ZZTMPDIR:-$HOME}/.zzlembrete"
 
 	# Assegura-se que o arquivo de lembretes existe
 	test -f "$arquivo" || touch "$arquivo"
@@ -27,17 +28,20 @@ zzlembrete ()
 		cat -n "$arquivo"
 
 	# Tem argumentos, que podem ser para mostrar, apagar ou adicionar
-	elif echo "$*" | tr -s '\t ' ' ' | grep '^ *[0-9]\{1,\} *d\{0,1\} *$' >/dev/null
+	elif echo "$*" | tr -s '\t ' '  ' | grep '^ *[0-9]\{1,\} *d\{0,1\} *$' >/dev/null
 	then
 		# Extrai o número da linha
 		numero=$(echo "$*" | tr -d -c 0123456789)
+
+		# Se não for um número ou menor igual a zero sai com erro.
+		zztool testa_numero "$numero" && test "$numero" -gt 0 || return 1
 
 		if zztool grep_var d "$*"
 		then
 			# zzlembrete 5d: Apaga linha 5
 			tmp=$(zztool mktemp lembrete)
 			cp "$arquivo" "$tmp" &&
-			sed "${numero:-0} d" "$tmp" > "$arquivo" || {
+			sed "$numero d" "$tmp" > "$arquivo" || {
 				zztool erro "Ops, deu algum erro no arquivo $arquivo"
 				zztool erro "Uma cópia dele está em $tmp"
 				return 1

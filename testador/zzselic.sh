@@ -10,12 +10,6 @@ Data;Taxa (%a.a.)
 05/11/1987;287,57
 $
 
-# Todas as informações disponíveis além da data e taxa em CSV
-$ zzselic -e -c 05/11/1987
-Data;Taxa (%a.a.);Fator diário;Base de cálculo (R$);Média;Mediana;Moda;Desvio padrão;Índice de curtose;
-05/11/1987;287,57;1,00539041;0,00;0,00;0,00;0,00;0,00;0,00;
-$
-
 # Taxa nos dias úteis num dado intervalo
 # Dia 4 foi feriado e os dias 6 e 7 foram um final de semana
 # A taxa só é divulgada em dias úteis
@@ -33,7 +27,7 @@ Número inválido '01-jan-2015'
 $
 
 # Opções desconhecidas não devem ser aceitas
-$ zzselic -t hoje #→ --regex ^Opção
+$ zzselic -t hoje #=> --regex ^Opção
 $
 
 # O site do BC não informa a taxa antes de 04/06/1986

@@ -12,8 +12,9 @@
 #
 # Autor: Thobias Salazar Trevisan, www.thobias.org
 # Desde: 2004-03-29
-# Versão: 2
-# Licença: GPL
+# Versão: 5
+# Requisitos: zzzz zztool zzjuntalinhas zztrim zzxml
+# Tags: internet, tempo, consulta
 # ----------------------------------------------------------------------------
 zzhoracerta ()
 {
@@ -24,7 +25,7 @@ zzhoracerta ()
 	local url='http://www.worldtimeserver.com'
 
 	# Opções de linha de comando
-	if test "$1" = '-s'
+	if test '-s' = "$1"
 	then
 		shift
 		codigo="$1"
@@ -37,7 +38,7 @@ zzhoracerta ()
 	# Para: AR-JY -- Jujuy
 	if ! test -s "$cache"
 	then
-		$ZZWWWHTML "$url/country.html" |
+		zztool source "$url/country.html" |
 			grep 'current_time_in_' |
 			sed 's/.*_time_in_// ; s/\.aspx">/ -- / ; s/<.*//' > "$cache"
 	fi
@@ -58,7 +59,7 @@ zzhoracerta ()
 	fi
 
 	# Se mais de uma localidade for encontrada, mostre-as
-	if test $(echo "$localidades" | sed -n '$=') != 1
+	if test $(echo "$localidades" | zztool num_linhas) != 1
 	then
 		echo "$localidades"
 		return
@@ -75,6 +76,15 @@ zzhoracerta ()
 	localidade=$(echo "$localidades" | sed 's/ .*//')
 
 	# Faz a consulta e filtra o resultado
-	$ZZWWWDUMP "$url/current_time_in_$localidade.aspx" |
-		grep 'The current time' -B 2 -A 5
+	zztool source "$url/current_time_in_$localidade.aspx" |
+		sed -n '/Current Time in /,/^ *<\/p>/p' |
+		zztrim |
+		zzxml --untag |
+		sed '
+			s/Current Time in //
+			/^What Time Is It/d
+			/^ *$/d
+			s/^ *//
+		' |
+		zzjuntalinhas -i 5 -f 8 -d ' '
 }

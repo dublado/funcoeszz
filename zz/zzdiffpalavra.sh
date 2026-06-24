@@ -8,23 +8,25 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2001-07-23
 # Versão: 3
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: diff, emulação
 # ----------------------------------------------------------------------------
 zzdiffpalavra ()
 {
 	zzzz -h diffpalavra "$1" && return
 
-	local esc
-	local tmp1=$(zztool mktemp diffpalavra)
-	local tmp2=$(zztool mktemp diffpalavra)
+	local esc tmp1 tmp2
 	local n=$(printf '\a')
 
 	# Verificação dos parâmetros
 	test $# -ne 2 && { zztool -e uso diffpalavra; return 1; }
 
 	# Verifica se os arquivos existem
-	zztool arquivo_legivel "$1" || return 1
-	zztool arquivo_legivel "$2" || return 1
+	zztool -e arquivo_legivel "$1" || return 1
+	zztool -e arquivo_legivel "$2" || return 1
+
+	tmp1=$(zztool mktemp diffpalavra)
+	tmp2=$(zztool mktemp diffpalavra)
 
 	# Deixa uma palavra por linha e marca o início de parágrafos
 	sed "s/^[[:blank:]]*$/$n$n/;" "$1" | tr ' ' '\n' > "$tmp1"
@@ -88,7 +90,7 @@ zzdiffpalavra ()
 		tr "$n" '\n' |
 
 		# Podemos mostrar cores?
-		if test "$ZZCOR" = 1
+		if test 1 = "$ZZCOR"
 		then
 			# Pinta as linhas antigas de vermelho e as novas de azul
 			esc=$(printf '\033')

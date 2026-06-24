@@ -15,8 +15,8 @@
 # Autor: Felipe Nascimento Silva Pena <felipensp (a) gmail com>
 # Desde: 2007-12-04
 # Versão: 5
-# Licença: GPL
-# Requisitos: zzcapitalize zzlimpalixo zzunescape zzxml
+# Requisitos: zzzz zztool zzcapitalize zzlimpalixo zzunescape zzxml
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzjquery ()
 {
@@ -32,9 +32,9 @@ zzjquery ()
 		if test -n "$2"
 		then
 			lista_cat=$(echo "$2" | zzcapitalize)
-			test "$lista_cat" = "Css" && lista_cat="CSS"
+			test 'Css' = "$lista_cat" && lista_cat="CSS"
 			url_aux=$(
-				$ZZWWWHTML "$url" |
+				zztool source "$url" |
 				awk '/<aside/,/aside>/{print}' |
 				sed "/<ul class='children'>/,/<\/ul>/d" |
 				zzxml --untag=aside --tag a |
@@ -48,7 +48,7 @@ zzjquery ()
 
 		if test -n "$url"
 		then
-			$ZZWWWHTML "$url" |
+			zztool source "$url" |
 			sed -n '/title="Permalink to /{s/^[[:blank:]]*//;s/<[^>]*>//g;s/()//;p;}' |
 			zzunescape --html
 		fi
@@ -56,27 +56,27 @@ zzjquery ()
 	;;
 	--categoria | --categorias)
 
-		$ZZWWWHTML "$url" |
+		zztool source "$url" |
 		awk '/<aside/,/aside>/{print}' |
 		sed "/<ul class='children'>/,/<\/ul>/d" |
 		zzxml --tag li --untag  | zzlimpalixo | zzunescape --html
 
 	;;
 	*)
-		test "$1" = "-s" && { sintaxe=1; shift; }
+		test '-s' = "$1" && { sintaxe=1; shift; }
 
 		if test -n "$1"
 		then
 			url_aux=$(
-				$ZZWWWHTML "$url" |
+				zztool source "$url" |
 				sed -n '/title="Permalink to /{s/^[[:blank:]]*//;s/()//g;p;}' |
 				zzunescape --html |
 				awk -F '[<>"]' '{print "http:" $3, $9 }' |
-				awk '$2 ~ /^[.:]{0,1}'$1'[^a-z]*$/ { print $1 }'
+				awk '$2 ~ /^[.:]?'$1'[^a-z]*$/ { print $1 }'
 			)
 			test -n "$url_aux" && url="$url_aux" || url=''
 		else
-			url=${url}jQuery
+			url="${url}jQuery/"
 		fi
 
 		if test -n "$url"
@@ -85,12 +85,13 @@ zzjquery ()
 			do
 				zztool grep_var 'http://' "$url_aux" || url_aux="http://$url_aux"
 				zztool eco ${url_aux#*com/} | tr -d '/'
-				$ZZWWWHTML "$url_aux" |
+				zztool source "$url_aux" |
 				zzxml --tag article |
 				awk '/class="entry(-content| method)"/,/<\/article>/{ print }' |
 				if test "$sintaxe" = "1"
 				then
-					awk '/<ul class="signatures">/,/<div class="longdesc"/ { print }' | awk '/<span class="name">/,/<\/span>/ { print }; /<h4 class="name">/,/<\/h4>/ { print };'
+					awk '/<ul class="signatures">/,/<div class="longdesc"/ { print }' |
+					awk '/<span class="name">/,/<\/span>/ { print }; /<h4 class="name">/,/<\/h4>/ { print };'
 				else
 					awk '
 							/<ul class="signatures">/,/(<div class="longdesc"|<section class="entry-examples")/ { if ($0 ~ /<\/h4>/ || $0 ~ /<\/span>/ || $0 ~ /<\/div>/) { print } else { printf $0 }}

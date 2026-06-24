@@ -21,8 +21,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2011-05-02
 # Versão: 3
-# Licença: GPL
-# Requisitos: zzdos2unix
+# Requisitos: zzzz zztool zzdos2unix
+# Tags: texto, manipulação
 # ----------------------------------------------------------------------------
 zzjuntalinhas ()
 {
@@ -52,14 +52,6 @@ zzjuntalinhas ()
 	zztool file_stdin "$@" |
 		zzdos2unix |
 		sed "
-			# Exceção: Início e fim na mesma linha, mostra a linha e pronto
-			$inicio {
-				$fim {
-					p
-					d
-				}
-			}
-
 			# O algoritmo é simples: ao entrar no trecho escolhido ($inicio)
 			# vai guardando as linhas. Quando chegar no fim do trecho ($fim)
 			# faz a troca das quebras de linha pelo $separador.

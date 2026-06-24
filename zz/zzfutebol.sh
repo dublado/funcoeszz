@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# http://esporte.uol.com.br/futebol/agenda-de-jogos
+# https://www.ogol.com.br
 # Mostra todos os jogos de futebol marcados para os próximos dias.
 # Ou os resultados de jogos recentes.
 # Além de mostrar os times que jogam, o script também mostra o dia,
@@ -11,6 +11,8 @@
 # Ou um ou dois argumentos para ver resultados do jogos:
 #   resultado ou placar, que pode ser acompanhado de hoje, ontem, anteontem.
 #
+# Nos casos dos dias, podem ser usadas datas no formato DD/MM/AAAA.
+#
 # Um filtro com nome do campeonato, nome do time, ou horário de uma partida.
 #
 # Uso: zzfutebol [resultado | placar ] [ argumento ]
@@ -18,74 +20,59 @@
 #      zzfutebol hoje            # Partidas que acontecem hoje.
 #      zzfutebol sabado          # Partidas que acontecem no sábado.
 #      zzfutebol libertadores    # Próximas partidas da Libertadores.
-#      zzfutebol 21h             # Partidas que começam entre 21 e 22h.
 #      zzfutebol resultado       # Placar dos jogos já ocorridos.
 #      zzfutebol placar ontem    # Placar dos jogos de ontem.
 #      zzfutebol placar espanhol # Placar dos jogos do Campeonato Espanhol.
 #
 # Autor: Jefferson Fausto Vaz (www.faustovaz.com)
 # Desde: 2014-04-08
-# Versão: 9
-# Licença: GPL
-# Requisitos: zzdata zzdatafmt zztrim zzpad
+# Versão: 11
+# Requisitos: zzzz zztool zzdatafmt zzjuntalinhas zzpad zzsqueeze zztrim zzutf8 zzxml
+# Tags: internet, futebol, consulta
 # ----------------------------------------------------------------------------
 zzfutebol ()
 {
 
 	zzzz -h futebol "$1" && return
-	local url="http://esporte.uol.com.br/futebol/central-de-jogos/proximos-jogos"
-	local linha campeonato time1 time2
+	local url='https://www.ogol.com.br/'
+	local pagina='proximos_jogos.php'
+	local data hora time1 placar time2 campeonato
 
 	case "$1" in
-		resultado | placar) url="http://esporte.uol.com.br/futebol/central-de-jogos/resultados"; shift;;
-		ontem | anteontem)  url="http://esporte.uol.com.br/futebol/central-de-jogos/resultados";;
+		resultado | placar) pagina='ultimos_resultados.php'; shift;;
+		ontem | anteontem)  pagina='ultimos_resultados.php' ;;
 	esac
 
-	$ZZWWWDUMP "$url" |
-	sed -n '/[0-9]h[0-9]/{N;N;p;}' |
-	sed '
-		s/^ *__* *$/XXX/
-		s/Amistoso.*/Amistoso/
-		s/ [A-Z][A-Z][A-Z]$//
-		s/__*//' |
+	zztool source "${url}/${pagina}" |
+	zzutf8 |
+	zzxml --tidy |
+	zzjuntalinhas -i '<td' -f 'td>' -d ' ' |
+	zzxml --untag |
 	zztrim |
-	awk '
-		NR % 3 == 1 { campeonato = $0 }
-		NR % 3 ~ /^[02]$/ {
-			if ($1 ~ /^[0-9-]{1,}$/ && $2 ~ /^[0-9-]{1,}$/) {
-				penais[NR % 3]=$1; placar[NR % 3]=$2; $1=""; $2=""
-			}
-			else if ($1 ~ /^[0-9-]{1,}$/ && $2 !~ /^[0-9-]{1,}$/) {
-				penais[NR % 3]=""; placar[NR % 3]=$1; $1=""
-			}
-			sub(/^ */,"");sub(/ *$/,"")
-			time[NR % 3]=" " $0 " "
+	zzsqueeze |
+	awk '/h2h/ {
+		for (i=1;i<=7;i++) {
+			getline
+			if(i==2 && $0 !~ /[012][0-9]:[0-5][0-9]/) { printf " n/d ;"; i++ }
+			if(i!=6) printf $0 ";" (i==7?"\n":"")
 		}
-		NR % 3 == 0 {
-			if (length(penais[0])>0 && length(penais[2])>0) {
-				placar[2] = placar[2] " ( " penais[2]
-				placar[0] = penais[0] " ) " placar[0]
-			}
-			else {
-				penais[0]=""; penais[2]=""
-			}
-			sub(/  *$/,""); print campeonato ":" time[2] placar[2] ":" placar[0] time[0]
-			placar[0]="";placar[2]=""
-		}
-		' |
+	}' |
+	while IFS=';' read -r data hora time1 placar time2 campeonato
+	do
+		echo "$(zzdatafmt $data) $hora $(zzpad -e 24 $time1) $(zzpad -a 14 $placar) $(zzpad 24 $time2) $campeonato"
+	done |
+	if test 'proximos_jogos.php' = "$pagina"
+	then
+		grep --color=never ' vs '
+	else
+		cat -
+	fi |
 	case "$1" in
-		hoje | amanh[aã] | segunda | ter[cç]a | quarta | quinta | sexta | s[aá]bado | domingo | ontem | anteontem)
-			grep --color=never -e $( zzdata $1 | zzdatafmt -f 'DD/MM/AA' )
+		hoje | amanh[aã] | segunda | ter[cç]a | quarta | quinta | sexta | s[aá]bado | domingo | ontem | anteontem | [0-3][0-9]/[01][0-9]/20[1-9][0-9])
+			grep --color=never -e $(zzdatafmt -f 'DD/MM/AAAA' $1)
 			;;
 		*)
 			grep --color=never -i "${1:-.}"
 			;;
-	esac |
-	while read linha
-	do
-		campeonato=$(echo $linha | cut -d":" -f 1)
-		time1=$(echo $linha | cut -d":" -f 2)
-		time2=$(echo $linha | cut -d":" -f 3 | zztrim)
-		echo "$(zzpad -r 40 $campeonato) $(zzpad -l 25 $time1) x $time2"
-	done
+	esac
 }

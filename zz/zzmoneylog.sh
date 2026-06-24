@@ -20,8 +20,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2011-05-25
 # Versão: 1
-# Licença: GPL
-# Requisitos: zzcalcula zzdatafmt zzdos2unix
+# Requisitos: zzzz zztool zzcalcula zzdatafmt zzdos2unix
+# Tags: arquivo, consulta
 # ----------------------------------------------------------------------------
 zzmoneylog ()
 {
@@ -66,9 +66,9 @@ zzmoneylog ()
 	fi
 
 	# Consigo ler o arquivo? (Se não for pasta nem STDIN)
-	if ! test -d "$arquivo" && test "$arquivo" != '-'
+	if ! test -d "$arquivo" && test '-' != "$arquivo"
 	then
-		zztool arquivo_legivel "$arquivo" || return 1
+		zztool -e arquivo_legivel "$arquivo" || return 1
 	fi
 
 	### DATA

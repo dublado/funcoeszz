@@ -5,11 +5,11 @@
 # Ex.: zznomealeatorio
 #      zznomealeatorio 8
 #
-# Autor: Guilherme Magalhães Gall <gmgall (a) gmail com> twitter: @gmgall
+# Autor: Guilherme Magalhães Gall <gmgall (a) gmail com>
 # Desde: 2013-03-03
 # Versão: 2
-# Licença: GPL
-# Requisitos: zzseq zzaleatorio
+# Requisitos: zzzz zztool zzseq zzaleatorio
+# Tags: sugestão
 # ----------------------------------------------------------------------------
 zznomealeatorio ()
 {

@@ -11,7 +11,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2003-10-02
 # Versão: 1
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: texto, contagem
 # ----------------------------------------------------------------------------
 zzcontapalavra ()
 {
@@ -24,9 +25,10 @@ zzcontapalavra ()
 	while test "${1#-}" != "$1"
 	do
 		case "$1" in
-			-p) inteira=  ;;
-			-i) ignora=1  ;;
-			* ) break     ;;
+			-p) inteira=     ;;
+			-i) ignora=1     ;;
+			--) shift; break ;;
+			* ) break        ;;
 		esac
 		shift
 	done

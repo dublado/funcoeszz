@@ -7,7 +7,8 @@
 # Autor: gabriell nascimento <gabriellhrn (a) gmail com>
 # Desde: 2013-04-15
 # Versão: 3
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: internet, dicionário
 # ----------------------------------------------------------------------------
 zzdicantonimos ()
 {
@@ -16,7 +17,7 @@ zzdicantonimos ()
 
 	local url='http://www.antonimos.com.br/busca.php'
 	local palavra="$*"
-	local palavra_busca=$( echo "$palavra" | sed "$ZZSEDURL" )
+	local palavra_busca=$( echo "$palavra" | zztool sedurl )
 
 	# Verifica se recebeu parâmetros
 	if test -z "$1"
@@ -26,12 +27,17 @@ zzdicantonimos ()
 	fi
 
 	# Faz a busca do termo no site, deixando somente os antônimos
-	$ZZWWWDUMP "${url}?q=${palavra_busca}" |
+	zztool dump "${url}?q=${palavra_busca}" |
 		sed -n "/[0-9]\{1,\} antônimos\{0,1\} d/,/«/ {
 			/[0-9]\{1,\} antônimos\{0,1\} d/d
 			/«/d
 			/^$/d
 			s/^ *//
+			s/^[0-9]*\. //
+			s/,//g
+			s/\.$//
 			p
-		}"
+		}" |
+		awk '/:/ {printf (NR>1?"\n\n":"") $0 "\n"; next}; NF==0 {print ""}; {printf " " $0}' |
+		zztool nl_eof
 }

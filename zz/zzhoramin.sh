@@ -9,8 +9,8 @@
 # Autor: Marcell S. Martini <marcellmartini (a) gmail com>
 # Desde: 2008-12-05
 # Versão: 4
-# Licença: GPLv2
-# Requisitos: zzhora
+# Requisitos: zzzz zzhora zztestar
+# Tags: tempo, conversão
 # ----------------------------------------------------------------------------
 zzhoramin ()
 {
@@ -22,7 +22,7 @@ zzhoramin ()
 	operacao='+'
 
 	# Testa se o parâmetro passado é uma hora valida
-	if ! zztool testa_hora "${1#-}"; then
+	if ! zztestar hora "${1#-}"; then
 		hora=$(zzhora agora | cut -d ' ' -f 1)
 	else
 		hora="$1"
@@ -46,6 +46,7 @@ zzhoramin ()
 	mm="${mm:-0}"
 
 	# faz o cálculo
+	# shellcheck disable=SC2035
 	mintotal=$(($hh * 60 $operacao $mm))
 
 	# Tcharã!!!!

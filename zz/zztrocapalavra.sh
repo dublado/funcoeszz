@@ -7,7 +7,8 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2000-05-04
 # Versão: 2
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: texto, conversão
 # ----------------------------------------------------------------------------
 zztrocapalavra ()
 {
@@ -33,7 +34,7 @@ zztrocapalavra ()
 	for arquivo
 	do
 		# O arquivo existe?
-		zztool arquivo_legivel "$arquivo" || continue
+		zztool -e arquivo_legivel "$arquivo" || continue
 
 		# Um teste rápido para saber se o arquivo tem a palavra antiga,
 		# evitando gravar o temporário desnecessariamente

@@ -1,18 +1,18 @@
 # ----------------------------------------------------------------------------
 # Mostra os últimos 5 avisos de segurança de sistemas de Linux/UNIX.
 # Suportados:
-#  Debian, Ubuntu, FreeBSD, NetBSD, Gentoo, Arch, Mandriva, Mageia,
-#  Slackware, Suse (OpenSuse), RedHat, Fedora.
+#  Debian, Ubuntu, FreeBSD, NetBSD, Gentoo, Arch, Mageia,
+#  Slackware, Suse, OpenSuse, Fedora.
 # Uso: zzsecurity [distros]
-# Ex.: zzsecutiry
-#      zzsecurity mandriva
+# Ex.: zzsecurity
+#      zzsecurity mageia
 #      zzsecurity debian gentoo
 #
 # Autor: Thobias Salazar Trevisan, www.thobias.org
 # Desde: 2004-12-23
-# Versão: 11
-# Licença: GPL
-# Requisitos: zzminusculas zzfeed zztac zzurldecode zzdata zzdatafmt
+# Versão: 14
+# Requisitos: zzzz zztool zzjuntalinhas zzminusculas zzfeed zzsqueeze zztac zzxml
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzsecurity ()
 {
@@ -21,7 +21,7 @@ zzsecurity ()
 	local url limite distros
 	local n=5
 	local ano=$(date '+%Y')
-	local distros='debian freebsd gentoo mandriva slackware suse opensuse ubuntu redhat arch mageia netbsd fedora'
+	local distros='debian freebsd gentoo slackware ubuntu arch mageia netbsd fedora'
 
 	limite="sed ${n}q"
 
@@ -30,15 +30,12 @@ zzsecurity ()
 	# Debian
 	if zztool grep_var debian "$distros"
 	then
-		url='http://www.debian.org'
+		url='http://www.debian.org/security'
 		echo
 		zztool eco '** Atualizações Debian'
 		echo "$url"
-		$ZZWWWDUMP "$url" |
-			sed -n '
-				/Security Advisories/,/_______/ {
-					/\[[0-9]/ s/^ *//p
-				}' |
+		zztool dump "$url" |
+			sed -n '/\[[0-9]/ s/^ *//p' |
 			$limite
 	fi
 
@@ -47,9 +44,12 @@ zzsecurity ()
 	then
 		echo
 		zztool eco '** Atualizações Slackware'
-		url="http://www.slackware.com/security/list.php?l=slackware-security&y=$ano"
+		url="http://www.slackware.com/security/list.php?l=slackware-security"
 		echo "$url"
-		$ZZWWWDUMP "$url" |
+		for sl_ano in $ano $((ano-1))
+		do
+			zztool dump "${url}&y=${sl_ano}"
+		done |
 			sed '
 				/[0-9]\{4\}-[0-9][0-9]/!d
 				s/\[sla.*ty\]//
@@ -64,47 +64,14 @@ zzsecurity ()
 		zztool eco '** Atualizações Gentoo'
 		url='http://www.gentoo.org/security/en/index.xml'
 		echo "$url"
-		$ZZWWWDUMP "$url" |
+		zztool dump "$url" |
 			sed -n '
 				s/^  *//
-				/^GLSA/, /^$/ !d
+				/^GLSA/,/^$/ !d
 				/[0-9]\{4\}/ {
 					s/\([-0-9]* \) *[a-zA-Z]* *\(.*[^ ]\)  *[0-9][0-9]* *$/\1\2/
 					p
 				}' |
-			$limite
-	fi
-
-	# Mandriva
-	if zztool grep_var mandriva "$distros"
-	then
-		echo
-		zztool eco '** Atualizações Mandriva'
-		url='http://www.mandriva.com/en/support/security/advisories/feed/'
-		echo "$url"
-		zzfeed -n $n "$url"
-	fi
-
-	# Suse
-	if zztool grep_var suse "$distros" || zztool grep_var opensuse "$distros"
-	then
-		echo
-		zztool eco '** Atualizações Suse'
-		url='https://www.suse.com/support/update/'
-		echo "$url"
-		$ZZWWWDUMP "$url" |
-			grep 'SUSE-SU' |
-			sed 's/^.*\(SUSE-SU\)/ \1/;s/\(.*\) \([A-Z].. .., ....\)$/\2\1/ ; s/  *$//' |
-			$limite
-
-		echo
-		zztool eco '** Atualizações Opensuse'
-		url="http://lists.opensuse.org/opensuse-updates/$(zzdata hoje - 1m | zzdatafmt -f AAAA-MM) http://lists.opensuse.org/opensuse-updates/$(zzdatafmt -f AAAA-MM hoje)"
-		echo "$url"
-		$ZZWWWDUMP $url |
-			grep 'SUSE-SU' |
-			sed 's/^ *\* //;s/ [0-9][0-9]:[0-9][0-9]:[0-9][0-9] GMT/,/;s/  *$//' |
-			zztac |
 			$limite
 	fi
 
@@ -113,9 +80,11 @@ zzsecurity ()
 	then
 		echo
 		zztool eco '** Atualizações FreeBSD'
-		url='http://www.freebsd.org/security/advisories.rdf'
+		url='https://www.freebsd.org/security/advisories'
 		echo "$url"
-		zzfeed -n $n "$url"
+		zztool dump "$url" |
+			sed -n '/Dat[ae].*Advisory name/,${/Dat[ae]/d;s/^[[:blank:]]*//;p;}' |
+			$limite
 	fi
 
 	# NetBSD
@@ -125,8 +94,7 @@ zzsecurity ()
 		zztool eco '** Atualizações NetBSD'
 		url='http://ftp.netbsd.org/pub/NetBSD/packages/vulns/pkg-vulnerabilities'
 		echo "$url"
-		$ZZWWWDUMP "$url" |
-			zzurldecode |
+		zztool dump "$url" |
 			sed '1,27d;/#CHECKSUM /,$d;s/ *https*:.*//' |
 			zztac |
 			$limite
@@ -135,33 +103,11 @@ zzsecurity ()
 	# Ubuntu
 	if zztool grep_var ubuntu "$distros"
 	then
-		url='http://www.ubuntu.com/usn/rss.xml'
+		url='https://usn.ubuntu.com/rss.xml'
 		echo
 		zztool eco '** Atualizações Ubuntu'
 		echo "$url"
 		zzfeed -n $n "$url"
-	fi
-
-	# Red Hat
-	if zztool grep_var redhat "$distros"
-	then
-		url='https://access.redhat.com/security/cve'
-		echo
-		zztool eco '** Atualizações Red Hat'
-		echo "$url"
-		$ZZWWWDUMP "$url" |
-			sed -n '
-				/^ *CVE-/ {
-					/\* RESERVED \*/ d
-					/Details pending/ d
-					s/ [[:alpha:]]\{1,\} [0-9-]\{1,\}$//
-					s/^  *//
-					p
-				}' |
-			zztac |
-			$limite |
-			sed 's/ /:\
-	/'
 	fi
 
 	# Fedora
@@ -171,7 +117,7 @@ zzsecurity ()
 		zztool eco '** Atualizações Fedora'
 		url='http://lwn.net/Alerts/Fedora/'
 		echo "$url"
-		$ZZWWWDUMP "$url" |
+		zztool dump "$url" |
 			grep 'FEDORA-' |
 			sed 's/^ *//' |
 			$limite
@@ -180,22 +126,18 @@ zzsecurity ()
 	# Arch
 	if zztool grep_var arch "$distros"
 	then
-		url="https://wiki.archlinux.org/index.php/CVE"
+		url="https://security.archlinux.org/"
 		echo
 		zztool eco '** Atualizações Archlinux'
 		echo "$url"
-		$ZZWWWDUMP "$url" |
-			sed -n "/^ *CVE-${ano}-[0-9]/{s/templink //;p;}" |
+		zztool source "$url" |
+			sed -n '/<table/,/table>/p' |
+			zzjuntalinhas -i '<td' -f 'td>' -d ' ' |
+			zzjuntalinhas -i '<tr' -f 'tr>' -d '|' |
+			zzxml --untag |
+			zzsqueeze |
+			awk -F '|' '/AVG-/{sub(/^ */,"");gsub(/ *\| */,"|"); print $1 "\t" $(NF-7) " " $(NF-6) "\t" $(NF-4) " " $(NF-3)}' |
+			expand -t 10,47 |
 			$limite
-	fi
-
-	# Mageia
-	if zztool grep_var mageia "$distros"
-	then
-		url='http://advisories.mageia.org/advisories.rss'
-		echo
-		zztool eco '** Atualizações Mageia'
-		echo "$url"
-		zzfeed -n $n "$url"
 	fi
 }

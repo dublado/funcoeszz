@@ -4,20 +4,15 @@
 # Ex.: zzglobo
 #
 # Autor: Vinícius Venâncio Leite <vv.leite (a) gmail com>
-# Desde: 2007-11-30
-# Versão: 5
-# Licença: GPL
-# Requisitos: zztrim
+# Desde: 2017-11-29
+# Versão: 9
+# Requisitos: zzzz zztv
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzglobo ()
 {
-	zzzz -h globo "$1" && return
+		zzzz -h globo "$1" && return
 
-	local url="http://vejonatv.com.br/programacao/globo-rede.html"
-
-	$ZZWWWDUMP "$url" |
-		sed -n "/Hoje \[[0-9]*\-[0-9]*\-[0-9]*\]/,/Amanhã .*/p" |
-		sed '$d' |
-		uniq |
-		zztrim
+		zztv grd |
+			sed 's/ *cod:.*//'
 }

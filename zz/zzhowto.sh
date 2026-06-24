@@ -7,8 +7,9 @@
 #
 # Autor: Thobias Salazar Trevisan, www.thobias.org
 # Desde: 2002-08-27
-# Versão: 2
-# Licença: GPL
+# Versão: 3
+# Requisitos: zzzz zztool zztrim zzxml
+# Tags: internet, consulta
 # ----------------------------------------------------------------------------
 zzhowto ()
 {
@@ -22,7 +23,7 @@ zzhowto ()
 	test -n "$1" || { zztool -e uso howto; return 1; }
 
 	# Força atualização da listagem apagando o cache
-	if test "$1" = '--atualiza'
+	if test '--atualiza' = "$1"
 	then
 		zztool atualiza howto
 		shift
@@ -33,9 +34,11 @@ zzhowto ()
 	# Se o cache está vazio, baixa listagem da Internet
 	if ! test -s "$cache"
 	then
-		$ZZWWWDUMP "$url" |
-			grep 'text/html' |
-			sed 's/^  *//; s/ [0-9][0-9]:.*//' > "$cache"
+		zztool source "$url" |
+			zzxml --untag |
+			zztrim |
+			grep -F '.html' |
+			sed 's/ [0-9][0-9]:.*//' > "$cache"
 	fi
 
 	# Pesquisa o termo (se especificado)

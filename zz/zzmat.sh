@@ -6,24 +6,24 @@
 # pois ficou muito extenso colocar no help do zzmat apenas.
 #
 # Funções matemáticas disponíveis.
-# Aritméticas:                     Trigonométricas:
-#  mmc mdc                          sen cos tan
-#  somatoria produtoria             csc sec cot
-#  media soma produto               asen acos atan
-#  log ln
-#  raiz, pow, potencia ou elevado
+# Aritméticas:               | Trigonométricas:
+#  mmc    mdc                |  sen   cos   tan
+#  media  soma  produto      |  csc   sec   cot
+#  log    ln    raiz         |  asen  acos  atan
+#  somatoria    produtoria
+#  pow, potencia ou elevado
 #
-# Combinatória:             Sequências:          Funções:
-#  fat                       pa pa2 pg lucas      area volume r3
-#  arranjo arranjo_r         fibonacci ou fib     det vetor d2p
-#  combinacao                tribonacci ou trib
-#  combinacao_r              collatz
+# Combinatória:        | Sequências:          | Funções:
+#  fat                 |  pa  pa2  pg  lucas  |  area  volume  r3
+#  arranjo  arranjo_r  |  fibonacci  ou fib   |  det   vetor   d2p
+#  combinacao          |  tribonacci ou trib
+#  combinacao_r        |  mersenne  recaman  collatz
 #
-# Equações:                  Auxiliares:
-#  eq2g egr err                converte
-#  egc egc3p ege               abs int sem_zeros
-#  newton ou binomio_newton    aleatorio random
-#  conf_eq                     compara_num
+# Equações:                  | Auxiliares:
+#  eq2g  egr    err          |  abs  int
+#  egc   egc3p  ege          |  sem_zeros
+#  newton ou binomio_newton  |  aleatorio  random
+#  conf_eq                   |  compara_num
 #
 # Mais detalhes: zzmat função
 #
@@ -35,9 +35,9 @@
 #
 # Autor: Itamar <itamarnet (a) yahoo com br>
 # Desde: 2011-01-19
-# Versão: 20
-# Licença: GPL
-# Requisitos: zzcalcula zzseq zzaleatorio zztrim
+# Versão: 23
+# Requisitos: zzzz zztool zzcalcula zzseq zzaleatorio zztrim zzconverte zztestar
+# Tags: número, cálculo
 # ----------------------------------------------------------------------------
 zzmat ()
 {
@@ -55,7 +55,7 @@ zzmat ()
 	if test "$?" = "0"
 	then
 		precisao="${1#-p}"
-		zztool testa_numero $precisao || precisao="6"
+		zztestar numero $precisao || precisao="6"
 		shift
 	else
 		precisao="6"
@@ -64,40 +64,17 @@ zzmat ()
 	funcao="$1"
 
 	# Atalhos para funções pow e fat, usando operadores unários
-	if zztool grep_var '^' "$funcao" && zzmat testa_num "${funcao%^*}" && zzmat testa_num "${funcao#*^}"
+	if zztool grep_var '^' "$funcao" && zztestar numero_real "${funcao%^*}" && zztestar numero_real "${funcao#*^}"
 	then
 		zzmat -p${precisao} pow "${funcao%^*}" "${funcao#*^}"
 		return
-	elif zztool grep_var '!' "$funcao" && zztool testa_numero "${funcao%\!}"
+	elif zztool grep_var '!' "$funcao" && zztestar numero "${funcao%\!}"
 	then
 		zzmat -p${precisao} fat "${funcao%\!}" $2
 		return
 	fi
 
 	case "$funcao" in
-	testa_num)
-		# Testa se $2 é um número não coberto pela zztool testa_numero*
-		echo "$2" | sed 's/^-[\.,]/-0\./;s/^[\.,]/0\./' |
-		grep '^[+-]\{0,1\}[0-9]\{1,\}[,.]\{0,1\}[0-9]*$' >/dev/null
-	;;
-	testa_num_exp)
-		local num1 num2 num3
-		echo "$2" | grep -E '(e|E)' >/dev/null
-		if test $? -eq 0
-		then
-			num3=$(echo "$2" | tr 'E,' 'e.')
-			num1=${num3%e*}
-			num2=${num3#*e}
-			if zzmat testa_num $num1 && zztool testa_numero_sinal $num2 2>/dev/null 1>/dev/null
-			then
-				return 0
-			else
-				return 1
-			fi
-		else
-			return 1
-		fi
-	;;
 	sem_zeros)
 		# Elimina o zeros nao significativos
 		local num1
@@ -116,18 +93,17 @@ zzmat ()
 		echo "$num1"
 	;;
 	compara_num)
-		if (test $# -eq "3" && zzmat testa_num $2 && zzmat testa_num $3)
+		if test $# -eq "3" && zztestar numero_real $2 && zztestar numero_real $3
 		then
-			local num1 num2 retorno
+			local num1 num2
 			num1=$(echo "$2" | tr ',' '.')
 			num2=$(echo "$3" | tr ',' '.')
-			retorno=$(
-			awk 'BEGIN {
-				if ('$num1' > '$num2') {print "maior"}
-				if ('$num1' == '$num2') {print "igual"}
-				if ('$num1' < '$num2') {print "menor"}
-			}')
-			echo "$retorno"
+			echo "$num1 $num2" |
+			awk '
+				$1 > $2  { print "maior" }
+				$1 == $2 { print "igual" }
+				$1 < $2  { print "menor" }
+			'
 		else
 			zztool erro " zzmat $funcao: Compara 2 numeros"
 			zztool erro " Retorna o texto 'maior', 'menor' ou 'igual'"
@@ -137,7 +113,7 @@ zzmat ()
 	;;
 	int)
 		local num1
-		if test "$2" = "-h"
+		if test '-h' = "$2"
 		then
 			zztool erro " zzmat $funcao: Valor Inteiro"
 			zztool erro " Uso: zzmat $funcao numero"
@@ -146,14 +122,14 @@ zzmat ()
 		fi
 		shift
 		num1=$(zztool multi_stdin "$@" | tr ',' '.')
-		if zzmat testa_num $num1
+		if zztestar numero_real $num1
 		then
 			echo $num1 | sed 's/\..*$//'
 		fi
 	;;
 	abs)
 		local num1
-		if test "$2" = "-h"
+		if test '-h' = "$2"
 		then
 			zztool erro " zzmat $funcao: Valor Absoluto"
 			zztool erro " Uso: zzmat $funcao numero"
@@ -162,102 +138,37 @@ zzmat ()
 		fi
 		shift
 		num1=$(zztool multi_stdin "$@" | tr ',' '.')
-		if zzmat testa_num $num1
+		if zztestar numero_real $num1
 		then
 			echo "$num1" | sed 's/^[-+]//'
 		fi
 	;;
-	converte)
-		if (test $# -eq "3" && zzmat testa_num $3)
-		then
-			local num1
-			num1=$(echo "$3" | tr ',' '.')
-			case $2 in
-			gr) num="$num1*$pi/180";;
-			rg) num="$num1*180/$pi";;
-			dr) num="$num1*$pi/200";;
-			rd) num="$num1*200/$pi";;
-			dg) num="$num1*0.9";;
-			gd) num="$num1/0.9";;
-			??)
-				local grandeza1 grandeza2 fator divisor potencia letra
-				local grandezas="y z a f p n u m c d 1 D H K M G T P E Z Y"
-				local potencias="-24 -21 -18 -15 -12 -9 -6 -3 -2 -1 0 1 2 3 6 9 12 15 18 21 24"
-				local posicao='1'
-
-				precisao=24
-				grandeza1=$(echo "$2" | sed 's/\([[:alpha:]1]\)[[:alpha:]1]/\1/')
-				grandeza2=$(echo "$2" | sed 's/[[:alpha:]1]\([[:alpha:]1]\)/\1/')
-				if (test "$grandeza1" != "$grandeza2")
-				then
-					for letra in $(echo "$grandezas")
-					do
-						potencia=$(echo "$potencias" | awk '{print $'$posicao'}')
-						test "$grandeza1" = "$letra" && fator=$potencia
-						test "$grandeza2" = "$letra" && divisor=$potencia
-						posicao=$((posicao + 1))
-					done
-					if (test -n "$fator" && test -n "$divisor")
-					then
-						precisao=$(zzmat abs $(($fator - $divisor)))
-						potencia=$(echo "$precisao" | awk '{printf 1;for (i=1;i<=$1;i++) {printf 0 }}')
-						case $(zzmat compara_num 0 $(($fator - $divisor))) in
-							'menor') letra='*';;
-							'maior') letra='/';;
-						esac
-						echo "scale=$precisao;${num1} ${letra} ${potencia}" | bc -l |
-						awk '{printf "%.'${precisao}'f\n", $1}' |
-						zzmat -p${precisao} sem_zeros
-					fi
-				fi
-			;;
-			esac
-		else
-			zztool erro " zzmat $funcao: Conversões de unidades (não contempladas no zzconverte)"
-			zztool erro " Sub-funções:
-	gr: graus para radiano
-	rg: radiano para graus
-	dr: grado para radiano
-	rd: radiano para grado
-	dg: grado para graus
-	gd: graus para grado
-	ou com os pares do Sistema Internacional de Unidade
-	(y z a f p n u m c d 1 D H K M G T P E Z Y)
-	usando a combição dessa letras em pares, sendo na ordem 'de' 'para'.
-	Obs: o 1 no centro representa a unidade de medida que não possui prefixo.
-	Atenção: Dependendo do computador, arquitetura e a precisao do sistema
-			podem haver distorções em valores muito distantes entre si.
-	Exempo: Kd converte de Kilo para deci."
-			zztool erro " Uso: zzmat $funcao sub-função número"
-			return 1
-		fi
-	;;
 	sen | cos | tan | csc | sec | cot)
-		if (test $# -eq "2")
+		if test $# -eq "2"
 		then
 			local num1 num2 ang
 			num1=$(echo "$2" | sed 's/g$//; s/gr$//; s/rad$//' | tr , .)
-			ang=${2#$num1}
+			ang=$(echo "$2" | tr -d -c '[grad]')
 			echo "$2" | grep -E '(g|rad|gr)$' >/dev/null
-			if (test "$?" -eq "0" && zzmat testa_num $num1)
+			if test "$?" -eq "0" && zztestar numero_real $num1
 			then
 				case $ang in
-				g)   num2=$(zzmat converte gr $num1);;
-				gr)  num2=$(zzmat converte dr $num1);;
+				g)   num2=$(zzconverte -p$((precisao+2)) gr $num1);;
+				gr)  num2=$(zzconverte -p$((precisao+2)) ar $num1);;
 				rad) num2=$num1;;
 				esac
 
 				case $funcao in
-				sen) num1=$(awk 'BEGIN {printf "%.'${precisao}'f\n", sin('$num2')}');;
-				cos) num1=$(awk 'BEGIN {printf "%.'${precisao}'f\n", cos('$num2')}');;
+				sen) num1="scale=${precisao};s(${num2})" ;;
+				cos) num1="scale=${precisao};c(${num2})" ;;
 				tan)
-					num1=$(awk 'BEGIN {div=sprintf("%.6f", cos('$num2'));if (div!="0.000000") printf "%.'${precisao}'f\n", sin('$num2')/cos('$num2');}');;
+					num1="scale=${precisao};if (c(${num2})) {s(${num2})/c(${num2})}" ;;
 				sec)
-					num1=$(awk 'BEGIN {div=sprintf("%.6f", cos('$num2'));if (div!="0.000000") printf "%.'${precisao}'f\n", 1/cos('$num2');}');;
+					num1="scale=${precisao};if (c(${num2})) {1/c(${num2})}" ;;
 				csc)
-					num1=$(awk 'BEGIN {div=sprintf("%.6f", sin('$num2'));if (div!="0.000000") printf "%.'${precisao}'f\n", 1/sin('$num2');}');;
+					num1="scale=${precisao};if (s(${num2})) {1/s(${num2})}" ;;
 				cot)
-					num1=$(awk 'BEGIN {div=sprintf("%.6f", sin('$num2'));if (div!="0.000000") printf "%.'${precisao}'f\n", cos('$num2')/sin('$num2');}');;
+					num1="scale=${precisao};if (s(${num2})) {c(${num2})/s(${num2})}" ;;
 				esac
 
 				test -n "$num1" && num="$num1"
@@ -277,7 +188,7 @@ zzmat ()
 		fi
 	;;
 	asen | acos | atan)
-		if test $# -ge "2" && test $# -le "4" && zzmat testa_num $2
+		if test $# -ge "2" && test $# -le "4" && zztestar numero_real $2
 		then
 			local num1 num2 num3 sinal
 			num1=$(echo "$2" | tr ',' '.')
@@ -323,8 +234,8 @@ zzmat ()
 			echo "$4" | grep 'r' >/dev/null && num2=$(echo "($num2)-2*($pi)" | bc -l)
 
 			case $3 in
-			g)        num=$(zzmat converte rg $num2);;
-			gr)       num=$(zzmat converte rd $num2);;
+			g)        num=$(zzconverte -p$((precisao+2)) rg $num2);;
+			gr)       num=$(zzconverte -p$((precisao+2)) ra $num2);;
 			rad | "") num="$num2";;
 			esac
 		else
@@ -343,11 +254,11 @@ zzmat ()
 		fi
 	;;
 	log | ln)
-		if (test $# -ge "2" && test $# -le "3" && zzmat testa_num $2)
+		if test $# -ge "2" && test $# -le "3" && zztestar numero_real $2
 		then
 			local num1 num2
 			num1=$(echo "$2" | tr ',' '.')
-			zzmat testa_num "$3" && num2=$(echo "$3" | tr ',' '.')
+			zztestar numero_real "$3" && num2=$(echo "$3" | tr ',' '.')
 			if test -n "$num2"
 			then
 				num="l($num1)/l($num2)"
@@ -366,7 +277,7 @@ zzmat ()
 		fi
 	;;
 	raiz)
-		if (test $# -eq "3" && zzmat testa_num "$3")
+		if test $# -eq "3" && zztestar numero_real "$3"
 		then
 			local num1 num2
 			case "$2" in
@@ -383,7 +294,7 @@ zzmat ()
 					return 1
 				fi
 			fi
-			if zzmat testa_num $num1
+			if zztestar numero_real $num1
 			then
 				num=$(awk 'BEGIN {printf "%.'${precisao}'f\n", '$num2'^(1/'$num1')}')
 			else
@@ -396,12 +307,12 @@ zzmat ()
 		fi
 	;;
 	potencia | elevado | pow)
-		if (test $# -eq "3" && zzmat testa_num "$2" && zzmat testa_num "$3")
+		if test $# -eq "3" && zztestar numero_real "$2" && zztestar numero_real "$3"
 		then
 			local num1 num2
 			num1=$(echo "$2" | tr ',' '.')
 			num2=$(echo "$3" | tr ',' '.')
-			if zztool testa_numero $num2
+			if zztestar numero $num2
 			then
 				num=$(echo "scale=${precisao};${num1}^${num2}" | bc -l | awk '{ printf "%.'${precisao}'f\n", $1 }')
 			else
@@ -417,12 +328,12 @@ zzmat ()
 		fi
 	;;
 	area)
-		if (test $# -ge "2")
+		if test $# -ge "2"
 		then
 			local num1 num2 num3
 			case "$2" in
 			triangulo)
-				if(zzmat testa_num $3 && zzmat testa_num $4)
+				if zztestar numero_real $3 && zztestar numero_real $4
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
@@ -432,19 +343,19 @@ zzmat ()
 				fi
 			;;
 			retangulo | losango)
-				if(zzmat testa_num $3 && zzmat testa_num $4)
+				if zztestar numero_real $3 && zztestar numero_real $4
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
 					num="${num1}*${num2}"
 				else
 					printf " Uso: zzmat %s %s " $funcao $2 >&2
-					test "$2" = "retangulo" && echo "base altura" >&2 || echo "diagonal_maior diagonal_menor" >&2
+					test 'retangulo' = "$2" && echo "base altura" >&2 || echo "diagonal_maior diagonal_menor" >&2
 					return 1
 				fi
 			;;
 			trapezio)
-				if(zzmat testa_num $3 && zzmat testa_num $4 && zzmat testa_num $5)
+				if zztestar numero_real $3 && zztestar numero_real $4 && zztestar numero_real $5
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
@@ -455,7 +366,7 @@ zzmat ()
 				fi
 			;;
 			toro)
-				if(zzmat testa_num $3 && zzmat testa_num $4 && test $(zzmat compara_num $3 $4) != "igual")
+				if zztestar numero_real $3 && zztestar numero_real $4 && test $(zzmat compara_num $3 $4) != "igual"
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
@@ -465,9 +376,9 @@ zzmat ()
 				fi
 			;;
 			tetraedro | cubo | octaedro | dodecaedro | icosaedro | quadrado | circulo | esfera | cuboctaedro | rombicuboctaedro | rombicosidodecaedro | icosidodecaedro)
-				if (test -n "$3")
+				if test -n "$3"
 				then
-					if(zzmat testa_num $3)
+					if zztestar numero_real $3
 					then
 						num1=$(echo "$3" | tr ',' '.')
 						case $2 in
@@ -484,7 +395,7 @@ zzmat ()
 						icosidodecaedro)     num="(5*sqrt(3)+3*sqrt(5)*sqrt(5+2*sqrt(5)))*${num1}^2";;
 						rombicosidodecaedro) num="(30+sqrt(30*(10+3*sqrt(5)+sqrt(15*(2+2*sqrt(5))))))*${num1}^2";;
 						esac
-					elif (test $3 = "truncado" && zzmat testa_num $4)
+					elif test 'truncado' = $3 && zztestar numero_real $4
 					then
 						num1=$(echo "$4" | tr ',' '.')
 						case $2 in
@@ -496,7 +407,7 @@ zzmat ()
 						cuboctaedro)     num="12*(2+sqrt(2)+sqrt(3))*${num1}^2";;
 						icosidodecaedro) num="30*(1+sqrt(2*sqrt(4+sqrt(5)+sqrt(15+6*sqrt(6)))))*${num1}^2";;
 						esac
-					elif (test $3 = "snub" && zzmat testa_num $4)
+					elif test 'snub' = $3 && zztestar numero_real $4
 					then
 						num1=$(echo "$4" | tr ',' '.')
 						case $2 in
@@ -522,12 +433,12 @@ zzmat ()
 		fi
 	;;
 	volume)
-		if (test $# -ge "2")
+		if test $# -ge "2"
 		then
 			local num1 num2 num3
 			case "$2" in
 			paralelepipedo)
-				if(zzmat testa_num $3 && zzmat testa_num $4 && zzmat testa_num $5)
+				if zztestar numero_real $3 && zztestar numero_real $4 && zztestar numero_real $5
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
@@ -538,7 +449,7 @@ zzmat ()
 				fi
 			;;
 			cilindro)
-				if(zzmat testa_num $3 && zzmat testa_num $4)
+				if zztestar numero_real $3 && zztestar numero_real $4
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
@@ -548,7 +459,7 @@ zzmat ()
 				fi
 			;;
 			cone)
-				if(zzmat testa_num $3 && zzmat testa_num $4)
+				if zztestar numero_real $3 && zztestar numero_real $4
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
@@ -558,7 +469,7 @@ zzmat ()
 				fi
 			;;
 			prisma)
-				if(zzmat testa_num $3 && zzmat testa_num $4)
+				if zztestar numero_real $3 && zztestar numero_real $4
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
@@ -568,7 +479,7 @@ zzmat ()
 				fi
 			;;
 			piramide)
-				if(zzmat testa_num $3 && zzmat testa_num $4)
+				if zztestar numero_real $3 && zztestar numero_real $4
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
@@ -579,7 +490,7 @@ zzmat ()
 			;;
 			toro)
 				local num_maior num_menor
-				if(zzmat testa_num $3 && zzmat testa_num $4 && test $(zzmat compara_num $3 $4) != "igual")
+				if zztestar numero_real $3 && zztestar numero_real $4 && test $(zzmat compara_num $3 $4) != "igual"
 				then
 					num1=$(echo "$3" | tr ',' '.')
 					num2=$(echo "$4" | tr ',' '.')
@@ -593,7 +504,7 @@ zzmat ()
 			tetraedro | cubo | octaedro | dodecaedro | icosaedro | esfera | cuboctaedro | rombicuboctaedro | rombicosidodecaedro | icosidodecaedro)
 				if test -n "$3"
 				then
-					if(zzmat testa_num $3)
+					if zztestar numero_real $3
 					then
 						num1=$(echo "$3" | tr ',' '.')
 						case $2 in
@@ -608,7 +519,7 @@ zzmat ()
 						icosidodecaedro)     num="((45+17*sqrt(5))*${num1}^3)/6";;
 						rombicosidodecaedro) num="(60+29*sqrt(5))/3*${num1}^3";;
 						esac
-					elif (test $3 = "truncado" && zzmat testa_num $4)
+					elif test 'truncado' = $3 && zztestar numero_real $4
 					then
 						num1=$(echo "$4" | tr ',' '.')
 						case $2 in
@@ -620,7 +531,7 @@ zzmat ()
 						cuboctaedro)     num="(22+14*sqrt(2))*${num1}^3";;
 						icosidodecaedro) num="(90+50*sqrt(5))*${num1}^3";;
 						esac
-					elif (test $3 = "snub" && zzmat testa_num $4)
+					elif test 'snub' = $3 && zztestar numero_real $4
 					then
 						num1=$(echo "$4" | tr ',' '.')
 						case $2 in
@@ -653,7 +564,7 @@ zzmat ()
 			shift
 			for num2 in $*
 			do
-				if (zztool testa_numero $num1 && zztool testa_numero $num2)
+				if zztestar numero $num1 && zztestar numero $num2
 				then
 					test "$num1" -gt "$num2" && num_maior=$num1 || num_maior=$num2
 					test "$num1" -lt "$num2" && num_menor=$num1 || num_menor=$num2
@@ -685,16 +596,15 @@ zzmat ()
 	;;
 	somatoria | produtoria)
 		#colocar x como a variavel a ser substituida
-		if (test $# -eq "4")
+		if test $# -eq "4"
 		then
 			zzmat $funcao $2 $3 1 $4
-		elif (test $# -eq "5" && zzmat testa_num $2 && zzmat testa_num $3 &&
-			zzmat testa_num $4 && zztool grep_var "x" $5 )
+		elif test $# -eq "5" && zztestar numero_real $2 && zztestar numero_real $3 && zztestar numero_real $4 && zztool grep_var "x" $5
 		then
 			local equacao numero operacao sequencia num1 num2
 			equacao=$(echo "$5" | sed 's/\[/(/g;s/\]/)/g')
 			test "$funcao" = "somatoria" && operacao='+' || operacao='*'
-			if (test $(zzmat compara_num $2 $3) = 'maior')
+			if test $(zzmat compara_num $2 $3) = 'maior'
 			then
 				num1=$2; num2=$3
 			else
@@ -716,7 +626,7 @@ zzmat ()
 		fi
 	;;
 	media | soma | produto)
-		if (test $# -ge "2")
+		if test $# -ge "2"
 		then
 			local soma=0
 			local qtde=0
@@ -726,11 +636,11 @@ zzmat ()
 			shift
 			while test $# -ne "0"
 			do
-				if (zztool grep_var "[" "$1" && zztool grep_var "]" "$1")
+				if zztool grep_var "[" "$1" && zztool grep_var "]" "$1"
 				then
 					valor=$(echo "$1" | sed 's/\([0-9]\{1,\}\)\[.*/\1/' | tr ',' '.')
 					peso=$(echo "$1" | sed 's/.*\[//;s/\]//')
-					if (zzmat testa_num "$valor" && zztool testa_numero "$peso")
+					if zztestar numero_real "$valor" && zztestar numero "$peso"
 					then
 						if test $funcao = 'produto'
 						then
@@ -740,7 +650,7 @@ zzmat ()
 							qtde=$(($qtde+$peso))
 						fi
 					fi
-				elif zzmat testa_num "$1"
+				elif zztestar numero_real "$1"
 				then
 					if test $funcao = 'produto'
 					then
@@ -768,22 +678,25 @@ zzmat ()
 		fi
 	;;
 	fat)
-		if (test $# -eq "2" -o $# -eq "3" && zztool testa_numero "$2" && test "$2" -ge "1")
+		if test $# -eq "2" -o $# -eq "3" && zztestar numero "$2" && test "$2" -ge "1"
 		then
-			if test "$3" = "s"
+			local num1 num2
+			if test 's' = "$3"
 			then
-				local num1 num2
-				num2=1
-				for num1 in $(zzseq $2)
-				do
-					num2=$(echo "$num1 * $num2" | bc | tr -d '\n\\')
-					printf "%s " $num2
-				done | zztrim -r
-				echo
+				num1=$(zzseq $2)
 			else
-				zzseq $2 | paste -s -d* - | bc | tr -d '\n\\'
-				echo
+				num1="$2"
 			fi
+			for num2 in $(echo "$num1")
+			do
+				echo "define fat(x) { if (x <= 1) return (1); return (fat(x-1) * x); }; fat($num2)" |
+				bc |
+				tr -d '\\\n' |
+				zztool nl_eof
+			done |
+			tr '\n' ' ' |
+			zztrim |
+			zztool nl_eof
 		else
 			zztool erro " zzmat $funcao: Resultado do produto de 1 ao numero atual (fatorial)"
 			zztool erro " Com o argumento 's' imprime a sequência até a posição."
@@ -795,8 +708,7 @@ zzmat ()
 		fi
 	;;
 	arranjo | combinacao | arranjo_r | combinacao_r)
-		if (test $# -eq "3" && zztool testa_numero "$2" && zztool testa_numero "$3" &&
-			test "$2" -ge "$3" && test "$3" -ge "1")
+		if test $# -eq "3" && zztestar numero "$2" && zztestar numero "$3" && test "$2" -ge "$3" && test "$3" -ge "1"
 		then
 			local n p dnp
 			n=$(zzmat fat $2)
@@ -807,7 +719,7 @@ zzmat ()
 			arranjo_r)  zzmat elevado "$2" "$3";;
 			combinacao) test "$2" -gt "$3" && num="${n}/(${p}*${dnp})" || return 1;;
 			combinacao_r)
-				if (test "$2" -gt "$3")
+				if test "$2" -gt "$3"
 				then
 					n=$(zzmat fat $(($2+$3-1)))
 					dnp=$(zzmat fat $(($2-1)))
@@ -827,16 +739,16 @@ zzmat ()
 		fi
 	;;
 	newton | binomio_newton)
-		if (test "$#" -ge "2")
+		if test "$#" -ge "2"
 		then
 			local num1 num2 grau sinal parcela coeficiente
 			num1="a"
 			num2="b"
 			sinal="+"
-			zztool testa_numero "$2" && grau="$2"
+			zztestar numero "$2" && grau="$2"
 			if test -n "$3"
 			then
-				if test "$3" = "+" -o "$3" = "-"
+				if test '+' = "$3" -o '-' = "$3"
 				then
 					sinal="$3"
 					test -n "$4" && num1="$4"
@@ -865,8 +777,7 @@ zzmat ()
 		fi
 	;;
 	pa | pa2 | pg)
-		if (test $# -eq "4" && zzmat testa_num "$2" &&
-		zzmat testa_num "$3" && zztool testa_numero "$4")
+		if test $# -eq "4" && zztestar numero_real "$2" && zztestar numero_real "$3" && zztestar numero "$4"
 		then
 			local num_inicial razao passo valor
 			num_inicial=$(echo "$2" | tr ',' '.')
@@ -902,7 +813,7 @@ zzmat ()
 	;;
 	fibonacci | fib | lucas)
 	# Sequência ou número de fibonacci
-		if zztool testa_numero "$2"
+		if zztestar numero "$2"
 		then
 			awk 'BEGIN {
 					seq = ( "'$3'" == "s" ? 1 : 0 )
@@ -919,19 +830,19 @@ zzmat ()
 				zztrim -r |
 				zztool nl_eof
 		else
-			echo " Número de fibonacci ou lucas, na posição especificada."
+			echo " Número de Fibonacci ou Lucas na posição especificada."
 			echo " Com o argumento 's' imprime a sequência até a posição."
 			echo " Uso: zzmat $funcao <número> [s]"
 		fi
 	;;
 	tribonacci | trib)
 	# Sequência ou número Tribonacci
-		if zztool testa_numero "$2"
+		if zztestar numero "$2"
 		then
 			awk 'BEGIN {
 					seq = ( "'$3'" == "s" ? 1 : 0 )
 					num1 = 0
-					num2 = 1
+					num2 = 0
 					num3 = 1
 					for ( i = 0; i < '$2' + seq; i++ ) {
 						if ( seq == 1 ) { printf "%s ", num1 }
@@ -945,14 +856,56 @@ zzmat ()
 				zztrim -r |
 				zztool nl_eof
 		else
-			echo " Número de tribonacci, na posição especificada."
+			echo " Número de Tribonacci na posição especificada."
 			echo " Com o argumento 's' imprime a sequência até a posição."
 			echo " Uso: zzmat $funcao <número> [s]"
 		fi
 	;;
+	recaman)
+	# Sequência ou número Recamán
+		if zztestar numero "$2"
+		then
+			awk 'BEGIN {
+					seq = ( "'$3'" == "s" ? 1 : 0 )
+					a[0]=0; b[0]=0
+					for ( i = 1; i <= '$2'; i++ ) {
+						num=a[i-1]
+						a[i] = ((num > i && ! ((num - i) in b)) ? num - i : num + i)
+						b[a[i]]=i
+					}
+					if ( seq ) { for (i=0; i<length(a); i++) printf "%d ", a[i] }
+					else { print a[length(a)-1] }
+				}' |
+				zztrim -r |
+				zztool nl_eof
+		else
+			echo " Número de Recamán na posição especificada."
+			echo " Com o argumento 's' imprime a sequência até a posição."
+			echo " Uso: zzmat $funcao <número> [s]"
+		fi
+	;;
+	mersenne)
+	# Sequência ou número de Mersenne
+		if zztestar numero "$2"
+		then
+			zzseq -f '2^%d-1\n' 0 $2 |
+			bc |
+			awk '{ if ($0 ~ /\\$/) { sub(/\\/,""); printf $0 } else { print } }' |
+			if test 's' = "$3"
+			then
+				zztool lines2list | zztool nl_eof
+			else
+				sed -n '$p'
+			fi
+		else
+				echo " Número de Mersenne na posição especificada."
+				echo " Com o argumento 's' imprime a sequência até a posição."
+				echo " Uso: zzmat $funcao <número> [s]"
+		fi
+	;;
 	collatz)
 	# Sequência de Collatz
-	if zztool testa_numero "$2"
+	if zztestar numero "$2"
 	then
 		awk '
 				function collatz(num) {
@@ -964,7 +917,7 @@ zzmat ()
 				}
 				BEGIN { collatz('$2')}
 			' |
-			zztrim -r |
+			zztrim |
 			zztool nl_eof
 	else
 		echo " Sequência de Collatz"
@@ -983,7 +936,7 @@ zzmat ()
 				num="$1"
 				ind=1
 				zztool grep_var "i" "$1" && ind=0 && num=$(echo "$1" | sed 's/i//')
-				if (zzmat testa_num ${num%/*} || test ${num%/*} = 'x') && (zzmat testa_num ${num#*/} || test ${num#*/} = 'x')
+				if (zztestar numero_real ${num%/*} || test ${num%/*} = 'x') && (zztestar numero_real ${num#*/} || test ${num#*/} = 'x')
 				then
 					num3=$((num3+1))
 					if test $((num3%2)) -eq $ind
@@ -1025,7 +978,7 @@ zzmat ()
 	;;
 	eq2g)
 	#Equação do Segundo Grau: Raizes e Vértice
-		if (test $# = "4" && zzmat testa_num $2 && zzmat testa_num $3 && zzmat testa_num $4)
+		if test $# = "4" && zztestar numero_real $2 && zztestar numero_real $3 && zztestar numero_real $4
 		then
 			local delta num_raiz vert_x vert_y raiz1 raiz2
 			delta=$(echo "$2 $3 $4" | tr ',' '.' | awk '{valor=$2^2-(4*$1*$3); print valor}')
@@ -1063,7 +1016,7 @@ zzmat ()
 		fi
 	;;
 	d2p)
-		if (test $# = "3" && zztool grep_var "," "$2" && zztool grep_var "," "$3")
+		if test $# = "3" && zztool grep_var "," "$2" && zztool grep_var "," "$3"
 		then
 			local x1 y1 z1 x2 y2 z2 a b
 			x1=$(echo "$2" | cut -f1 -d,)
@@ -1072,12 +1025,11 @@ zzmat ()
 			x2=$(echo "$3" | cut -f1 -d,)
 			y2=$(echo "$3" | cut -f2 -d,)
 			z2=$(echo "$3" | cut -f3 -d,)
-			if (zzmat testa_num $x1 && zzmat testa_num $y1 &&
-				zzmat testa_num $x2 && zzmat testa_num $y2 )
+			if zztestar numero_real $x1 && zztestar numero_real $y1 && zztestar numero_real $x2 && zztestar numero_real $y2
 			then
 				a=$(echo "(($y1)-($y2))^2" | bc -l)
 				b=$(echo "(($x1)-($x2))^2" | bc -l)
-				if (zzmat testa_num $z1 && zzmat testa_num $z2)
+				if zztestar numero_real $z1 && zztestar numero_real $z2
 				then
 					num="sqrt((($z1)-($z2))^2+$a+$b)"
 				else
@@ -1093,7 +1045,7 @@ zzmat ()
 		fi
 	;;
 	vetor)
-		if (test $# -ge "3")
+		if test $# -ge "3"
 		then
 			local valor ang teta fi oper tipo num1 saida
 			local x1=0
@@ -1101,7 +1053,7 @@ zzmat ()
 			local z1=0
 			shift
 
-			test "$1" = "-e" -o "$1" = "-c" && tipo="$1" || tipo="-e"
+			test '-e' = "$1" -o '-c' = "$1" && tipo="$1" || tipo="-e"
 			oper="+"
 			saida=$(echo "$*" | awk '{print $NF}')
 
@@ -1111,35 +1063,35 @@ zzmat ()
 				zztool grep_var "," $1 && teta=$(echo "$1" | cut -f2 -d,)
 				zztool grep_var "," $1 && fi=$(echo "$1" | cut -f3 -d,)
 
-				if (test -n "$fi" && zzmat testa_num $valor)
+				if test -n "$fi" && zztestar numero_real $valor
 				then
 					num1=$(echo "$fi" | sed 's/g$//; s/gr$//; s/rad$//')
-					ang=${fi#$num1}
+					ang=$(echo "$fi" | tr -d -c '[grad]')
 					echo "$fi" | grep -E '(g|rad|gr)$' >/dev/null
-					if (test "$?" -eq "0" && zzmat testa_num $num1)
+					if test "$?" -eq "0" && zztestar numero_real $num1
 					then
 						case $ang in
-						g)   fi=$(zzmat converte gr $num1);;
-						gr)  fi=$(zzmat converte dr $num1);;
+						g)   fi=$(zzconverte -p$((precisao+2)) gr $num1);;
+						gr)  fi=$(zzconverte -p$((precisao+2)) ar $num1);;
 						rad) fi=$num1;;
 						esac
 						z1=$(echo "$z1 $oper $(zzmat cos ${fi}rad) * $valor" | bc -l)
-					elif zzmat testa_num $num1
+					elif zztestar numero_real $num1
 					then
 						z1="$num1"
 					fi
 				fi
 
-				if (test -n "$teta" && zzmat testa_num $valor)
+				if test -n "$teta" && zztestar numero_real $valor
 				then
 					num1=$(echo "$teta" | sed 's/g$//; s/gr$//; s/rad$//')
-					ang=${teta#$num1}
+					ang=$(echo "$teta" | tr -d -c '[grad]')
 					echo "$teta" | grep -E '(g|rad|gr)$' >/dev/null
-					if (test "$?" -eq "0" && zzmat testa_num $num1)
+					if test "$?" -eq "0" && zztestar numero_real $num1
 					then
 						case $ang in
-						g)   teta=$(zzmat converte gr $num1);;
-						gr)  teta=$(zzmat converte dr $num1);;
+						g)   teta=$(zzconverte -p$((precisao+2)) gr $num1);;
+						gr)  teta=$(zzconverte -p$((precisao+2)) ar $num1);;
 						rad) teta=$num1;;
 						esac
 					else
@@ -1147,7 +1099,7 @@ zzmat ()
 					fi
 				fi
 
-				if zzmat testa_num $valor
+				if zztestar numero_real $valor
 				then
 					test -n "$fi" && num1=$(echo "$(zzmat sen ${fi}rad)*$valor" | bc -l) ||
 						num1=$valor
@@ -1164,12 +1116,12 @@ zzmat ()
 
 			case $saida in
 			g)
-				teta=$(zzmat converte rg $teta)
-				fi=$(zzmat converte rg $fi)
+				teta=$(zzconverte -p$((precisao+2)) rg $teta)
+				fi=$(zzconverte -p$((precisao+2)) rg $fi)
 			;;
 			gr)
-				teta=$(zzmat converte rd $teta)
-				fi=$(zzmat converte rd $fi)
+				teta=$(zzconverte -p$((precisao+2)) ra $teta)
+				fi=$(zzconverte -p$((precisao+2)) ra $fi)
 			;;
 			*) saida="rad";;
 			esac
@@ -1177,7 +1129,7 @@ zzmat ()
 			teta=$(awk 'BEGIN {printf "%.'${precisao}'f\n", '$teta'}' | zzmat -p${precisao} sem_zeros )
 			fi=$(awk 'BEGIN {printf "%.'${precisao}'f\n", '$fi'}' | zzmat -p${precisao} sem_zeros )
 
-			if test "$tipo" = "-c"
+			if test '-c' = "$tipo"
 			then
 				valor=$(echo "sqrt(${valor}^2-$z1^2)" | bc -l |
 					awk '{printf "%.'${precisao}'f\n", $1}' | zzmat -p${precisao} sem_zeros )
@@ -1208,23 +1160,20 @@ zzmat ()
 	#y1 – y2 = a
 	#x2 – x1 = b
 	#x1y2 – x2y1 = c
-		if (test $# = "3" && zztool grep_var "," "$2" && zztool grep_var "," "$3")
+		if test $# = "3" && zztool grep_var "," "$2" && zztool grep_var "," "$3"
 		then
 			local x1 y1 x2 y2 a b c redutor m
 			x1=$(echo "$2" | cut -f1 -d,)
 			y1=$(echo "$2" | cut -f2 -d,)
 			x2=$(echo "$3" | cut -f1 -d,)
 			y2=$(echo "$3" | cut -f2 -d,)
-			if (zzmat testa_num $x1 && zzmat testa_num $y1 &&
-				zzmat testa_num $x2 && zzmat testa_num $y2 )
+			if zztestar numero_real $x1 && zztestar numero_real $y1 && zztestar numero_real $x2 && zztestar numero_real $y2
 			then
 				a=$(awk 'BEGIN {valor=('$y1')-('$y2'); printf "%.'${precisao}'f\n", valor}' | zzmat -p${precisao} sem_zeros)
 				b=$(awk 'BEGIN {valor=('$x2')-('$x1');  printf "%+.'${precisao}'f\n", valor}' | zzmat -p${precisao} sem_zeros)
 				c=$(zzmat det $x1 $y1 $x2 $y2 | awk '{printf "%+.'${precisao}'f\n", $1}' | zzmat -p${precisao} sem_zeros)
 				m=$(awk 'BEGIN {valor=(('$y2'-'$y1')/('$x2'-'$x1')); printf "%.'${precisao}'f\n", valor}' | zzmat -p${precisao} sem_zeros)
-				if (zztool testa_numero_sinal $a &&
-					zztool testa_numero_sinal $b &&
-					zztool testa_numero_sinal $c)
+				if zztestar numero_sinal $a && zztestar numero_sinal $b && zztestar numero_sinal $c
 				then
 					redutor=$(zzmat mdc $(zzmat abs $a) $(zzmat abs $b) $(zzmat abs $c))
 					a=$(awk 'BEGIN {valor=('$a')/('$redutor'); print valor}')
@@ -1258,13 +1207,13 @@ zzmat ()
 	#x2 + y2 - 2ax - 2by + a2 + b2 - r2 = 0
 	#A=-2ax | B=-2by | C=a2+b2-r2
 	#r=raio | a=coordenada x do centro | b=coordenada y do centro
-		if (test $# = "3" && zztool grep_var "," "$2")
+		if test $# = "3" && zztool grep_var "," "$2"
 		then
 			local a b r A B C
 			if zztool grep_var "," "$3"
 			then
 				r=$(zzmat d2p $2 $3)
-			elif zzmat testa_num "$3"
+			elif zztestar numero_real "$3"
 			then
 				r=$(echo "$3" | tr ',' '.')
 			else
@@ -1284,8 +1233,7 @@ zzmat ()
 	;;
 	egc3p)
 	#Equação Geral da Circunferência: 3 Pontos
-		if (test $# = "4" && zztool grep_var "," "$2" &&
-			zztool grep_var "," "$3" && zztool grep_var "," "$4")
+		if test $# = "4" && zztool grep_var "," "$2" &&	zztool grep_var "," "$3" && zztool grep_var "," "$4"
 		then
 			local x1 y1 x2 y2 x3 y3 A B C D
 			x1=$(echo "$2" | cut -f1 -d,)
@@ -1295,18 +1243,18 @@ zzmat ()
 			x3=$(echo "$4" | cut -f1 -d,)
 			y3=$(echo "$4" | cut -f2 -d,)
 
-			if (test $(zzmat det $x1 $y1 1 $x2 $y2 1 $x3 $y3 1) -eq 0)
+			if test $(zzmat det $x1 $y1 1 $x2 $y2 1 $x3 $y3 1) -eq 0
 			then
 				zztool erro "Pontos formam uma reta."
 				return 1
 			fi
 
-			if (! zzmat testa_num $x1 || ! zzmat testa_num $x2 || ! zzmat testa_num $x3)
+			if ! zztestar numero_real $x1 || ! zztestar numero_real $x2 || ! zztestar numero_real $x3
 			then
 				zztool erro " Uso: zzmat $funcao ponto(a,b) ponto(c,d) ponto(x,y)";return 1
 			fi
 
-			if (! zzmat testa_num $y1 || ! zzmat testa_num $y2 || ! zzmat testa_num $y3)
+			if ! zztestar numero_real $y1 || ! zztestar numero_real $y2 || ! zztestar numero_real $y3
 			then
 				zztool erro " Uso: zzmat $funcao ponto(a,b) ponto(c,d) ponto(x,y)";return 1
 			fi
@@ -1337,13 +1285,13 @@ zzmat ()
 	#x2 + y2 + z2 - 2ax - 2by -2cz + a2 + b2 + c2 - r2 = 0
 	#A=-2ax | B=-2by | C=-2cz | D=a2+b2+c2-r2
 	#r=raio | a=coordenada x do centro | b=coordenada y do centro | c=coordenada z do centro
-		if (test $# = "3" && zztool grep_var "," "$2")
+		if test $# = "3" && zztool grep_var "," "$2"
 		then
 			local a b c r A B C D
 			if zztool grep_var "," "$3"
 			then
 				r=$(zzmat d2p $2 $3)
-			elif zzmat testa_num "$3"
+			elif zztestar numero_real "$3"
 			then
 				r=$(echo "$3" | tr ',' '.')
 			else
@@ -1353,7 +1301,7 @@ zzmat ()
 			b=$(echo "$2" | cut -f2 -d,)
 			c=$(echo "$2" | cut -f3 -d,)
 
-			if(! zzmat testa_num $a || ! zzmat testa_num $b || ! zzmat testa_num $c)
+			if ! zztestar numero_real $a || ! zztestar numero_real $b || ! zztestar numero_real $c
 			then
 				zztool erro " Uso: zzmat $funcao centro(a,b,c) (numero|ponto(x,y,z))";return 1
 			fi
@@ -1376,7 +1324,7 @@ zzmat ()
 		local qtde=1
 		local n_temp
 
-		if test "$2" = "-h"
+		if test '-h' = "$2"
 		then
 			echo " zzmat $funcao: Gera um número aleatório."
 			echo " Sem argumentos gera números entre 0 e 1."
@@ -1388,11 +1336,11 @@ zzmat ()
 			return
 		fi
 
-		if (zzmat testa_num $3)
+		if zztestar numero_real $3
 		then
 			max=$(echo "$3" | tr ',' '.')
-			if zzmat testa_num $2;then min=$(echo "$2" | tr ',' '.');fi
-		elif (zzmat testa_num $2)
+			if zztestar numero_real $2;then min=$(echo "$2" | tr ',' '.');fi
+		elif zztestar numero_real $2
 		then
 			max=$(echo "$2" | tr ',' '.')
 		fi
@@ -1405,7 +1353,7 @@ zzmat ()
 			unset n_temp
 		fi
 
-		if test -n "$4" && zztool testa_numero $4;then qtde=$4;fi
+		if test -n "$4" && zztestar numero $4;then qtde=$4;fi
 
 		case "$funcao" in
 		aleatorio)
@@ -1426,13 +1374,13 @@ zzmat ()
 	;;
 	det)
 		# Determinante de matriz (2x2 ou 3x3)
-		if (test $# -ge "5" && test $# -le "10")
+		if test $# -ge "5" && test $# -le "10"
 		then
 			local num
 			shift
 			for num in $*
 			do
-				if ! zzmat testa_num "$num"
+				if ! zztestar numero_real "$num"
 				then
 					zztool erro " Uso: zzmat $funcao numero1 numero2 numero3 numero4 [numero5 numero6 numero7 numero8 numero9]"
 					return 1
@@ -1451,7 +1399,7 @@ zzmat ()
 	;;
 	conf_eq)
 		# Confere equação
-		if (test $# -ge "2")
+		if test $# -ge "2"
 		then
 			equacao=$(echo "$2" | sed 's/\[/(/g;s/\]/)/g')
 			local x y z eq

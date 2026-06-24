@@ -8,7 +8,8 @@
 # Autor: Fernando Mercês <fernando (a) mentebinaria.com.br>
 # Desde: 2012-02-24
 # Versão: 3
-# Licença: GPL
+# Requisitos: zzzz zztool
+# Tags: texto, conversão
 # ----------------------------------------------------------------------------
 zzhexa2str ()
 {
@@ -26,7 +27,7 @@ zzhexa2str ()
 		sed 's/^0x//' |
 
 		# hexa -> str
-		while read hexa
+		while read -r hexa
 		do
 			printf "\\x$hexa"
 		done

@@ -12,8 +12,9 @@
 #
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2011-05-03
-# Versão: 2
-# Licença: GPL
+# Versão: 3
+# Requisitos: zzzz zztool
+# Tags: texto, conversão
 # ----------------------------------------------------------------------------
 zzunescape ()
 {
@@ -55,7 +56,7 @@ zzunescape ()
 		s/&#0*170;/ª/g;     s/&#x0*AA;/ª/g;     s/&ordf;/ª/g;
 		s/&#0*171;/«/g;     s/&#x0*AB;/«/g;     s/&laquo;/«/g;
 		s/&#0*172;/¬/g;     s/&#x0*AC;/¬/g;     s/&not;/¬/g;
-		s/&#0*173;/ /g;     s/&#x0*AD;/ /g;     s/&shy;/ /g;
+		s/&#0*173;/­/g;      s/&#x0*AD;/­/g;      s/&shy;/­/g;
 		s/&#0*174;/®/g;     s/&#x0*AE;/®/g;     s/&reg;/®/g;
 		s/&#0*175;/¯/g;     s/&#x0*AF;/¯/g;     s/&macr;/¯/g;
 		s/&#0*176;/°/g;     s/&#x0*B0;/°/g;     s/&deg;/°/g;
@@ -201,10 +202,10 @@ zzunescape ()
 		s/&#0*8194;/ /g;    s/&#x0*2002;/ /g;   s/&ensp;/ /g;
 		s/&#0*8195;/ /g;    s/&#x0*2003;/ /g;   s/&emsp;/ /g;
 		s/&#0*8201;/ /g;    s/&#x0*2009;/ /g;   s/&thinsp;/ /g;
-		s/&#0*8204;/ /g;    s/&#x0*200C;/ /g;   s/&zwnj;/ /g;
-		s/&#0*8205;/ /g;    s/&#x0*200D;/ /g;   s/&zwj;/ /g;
-		s/&#0*8206;/ /g;    s/&#x0*200E;/ /g;   s/&lrm;/ /g;
-		s/&#0*8207;/ /g;    s/&#x0*200F;/ /g;   s/&rlm;/ /g;
+		s/&#0*8204;/‌/g;     s/&#x0*200C;/‌/g;    s/&zwnj;/‌/g;
+		s/&#0*8205;/‍/g;     s/&#x0*200D;/‍/g;    s/&zwj;/‍/g;
+		s/&#0*8206;/‎/g;     s/&#x0*200E;/‎/g;    s/&lrm;/‎/g;
+		s/&#0*8207;/‏/g;     s/&#x0*200F;/‏/g;    s/&rlm;/‏/g;
 		s/&#0*8211;/–/g;    s/&#x0*2013;/–/g;   s/&ndash;/–/g;
 		s/&#0*8212;/—/g;    s/&#x0*2014;/—/g;   s/&mdash;/—/g;
 		s/&#0*8216;/‘/g;    s/&#x0*2018;/‘/g;   s/&lsquo;/‘/g;
@@ -297,18 +298,19 @@ zzunescape ()
 	do
 		case "$1" in
 			--html)
-				filtro="$filtro$html";
+				filtro="$filtro$html"
 				shift
 			;;
 			--xml)
-				filtro="$filtro$xml";
+				filtro="$filtro$xml"
 				shift
 			;;
+			--) shift; break ;;
 			*) break ;;
 		esac
 	done
 
 	# Faz a conversão
 	# Arquivos via STDIN ou argumentos
-	zztool file_stdin "$@" | sed "$filtro"
+	zztool file_stdin -- "$@" | sed "$filtro"
 }

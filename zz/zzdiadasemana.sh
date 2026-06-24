@@ -10,8 +10,7 @@
 # Autor: Aurelio Marinho Jargas, www.aurelio.net
 # Desde: 2008-10-24
 # Versão: 3
-# Licença: GPL
-# Requisitos: zzdata
+# Requisitos: zzzz zztool zzdata
 # Tags: data
 # ----------------------------------------------------------------------------
 zzdiadasemana ()
@@ -26,7 +25,7 @@ zzdiadasemana ()
 	# 1=domingo, assim os números são similares aos nomes: 2=segunda
 
 	# Opção de linha de comando
-	if test "$1" = '-n'
+	if test '-n' = "$1"
 	then
 		dias="$dias_n"
 		dias_rev="$dias_n_rev"
